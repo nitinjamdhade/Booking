@@ -1,0 +1,3198 @@
+<?php $fieldcounts = count($this->fildnames) + 1; 
+$err_regiform=$this->formElementErrors($regiform);// for add driver
+ $err_driver=$this->formElementErrors($form);// form for drver detail
+ $err_vehicleform=$this->formElementErrors($vehicleform);// add vehicle
+if(isset($scc[0])&& !empty($scc[0]))
+    echo $scc[0]." inserted successfuly";
+?>
+<div class="contentPanel">
+
+    
+
+        <div class="row ">
+            <div class="col-sm-6 pull-left">
+                <header>
+                    <h3 class="orange">Manage Bookings</h3>
+                </header>
+            </div>
+            <div class="col-sm-6 pull-right"> 
+
+            </div>
+            <?php if ($this->isGranted('booking.bookingadd')) {?>
+            <div class="col-sm-6 pull-right">
+                <div class="addUserBtn"><a href="<?php echo $this->url('booking', array('controller' => 'booking', 'action' => 'bookingadd')); ?>">New Booking</a></div>
+            </div>
+             <?php } ?>
+        </div>
+        <div class="tabCovertoMenu">
+        <div class="tabCoverBg"></div>
+        <div class="tabMenuOuterContainer">
+            <ul class="nav nav-pills">
+                <li role="presentation" class="active"><a href="#tab-details" data-toggle="tab">Website Bookings</a></li>
+                <li><a href="<?php echo $this->url('booking', array('controller' => 'booking', 'action' => 'rbookings')); ?>">Received Bookings</a></li>
+                <li><a href="<?php echo $this->url('booking', array('controller' => 'booking', 'action' => 'mbookings')); ?>">My Bookings</a></li>
+            </ul>
+
+            <div id="generalTabContent" class="tab-content">
+                <div id="tab-details" class="tab-pane fade in active">
+<div class="commonFormNewTabsDiv">
+    <?php if (!empty($datas)) { ?>
+        <div id="tableContainer">
+            <table id="bookingTable" class="display table table-striped table-bordered center" cellspacing="0" width="100%" style="margin:auto; padding: 3px; text-align: center">
+                <thead>
+                    <tr class="dataTable-title" style="padding:3px;">
+                        <th>Sr. No</th>
+                        <?php
+                        for ($j = 0; count($fildnames) > $j; $j++) {
+                            $fieldnameval = $fildnames[$j];
+                            echo "<th>$fieldnameval</th>";
+                        }
+                        ?>
+                        <th>Action
+                        </th>
+                    </tr>
+                </thead>
+
+
+
+            </table>
+        </div>
+    <?php } else { ?>
+        <div id="tableContainer" class="dataTable-title nodata">
+            Empty Record Found!
+        </div>
+    <?php } ?>
+                   </div> </div></div></div></div>
+</div>            
+
+
+<script src="/dist/sweetalert.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/dist/sweetalert.css">
+<!--//popup comboSelect -->
+<link href="/css/combo.select.css" rel="stylesheet" type="text/css"/>
+
+
+<!--<link href="/css/dataTables.colVis.css" rel="stylesheet" type="text/css"/>
+<script src="/js/jquery.dataTables.min.js" type="text/javascript"></script>
+<script src="/js/dataTables.bootstrap.js" type="text/javascript"></script>
+<script src="/js/jquery.dataTables.js" type="text/javascript"></script>
+<script src="/js/dataTables.colVis.js" type="text/javascript"></script>-->
+
+<!--//popup validation-->
+<script src="http://jqueryvalidation.org/files/dist/jquery.validate.min.js"></script>
+<script src="http://jqueryvalidation.org/files/dist/additional-methods.min.js"></script>
+<script type="text/javascript">
+    var refund;
+    var diffrence;
+    var uId;
+     
+    $("body").on("keypress", ".cmndpDnSmlInput", function(event){
+       
+         return isNumber(event,this);
+     });
+    
+     $("body").on("keyup", ".calc", function(event){
+       var val=0;
+        $('.calc').each(
+                function (index) {
+
+                    val += parseInt($(this).val()) || 0;
+                    
+            });
+            $('#totalFareVendor').val(val);
+    });
+//popup
+function popup()
+{
+//                    $('#my_popup_box').empty();
+                    $('#my_popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                    var html = '<div class="commonPopupClose" onclick="closeme();"></div>';
+                        $('#my_popup_box').append(html);
+}
+
+
+    function closeme()
+    {
+       $('#popup_box').fadeOut();
+        $('#my_popup_box').fadeOut();
+        $('#add_driver_popup_box').fadeOut();
+        $('#add_vehicle_popup_box').fadeOut();
+        $(".commonPopupContainerDiv").css({"display": "none"});
+        $(".commonPopupContainerDiv").css({"opacity": "1"});
+        $('.commonPopupContainerDiv#updv').css("height",'100px')
+    }
+
+  
+        $('.commonPopupContainerDiv').click(function () {
+
+            $('#popup_box').fadeOut();
+            $(".commonPopupContainerDiv").css({"display": "none"});
+            $(".commonPopupContainerDiv").css({"opacity": "1"});
+             $('.commonPopupContainerDiv#updv').css("height",'100px');
+             closeme();
+            //  $('body').css("overflow","auto");
+        });
+
+ $(document).ready(function () {
+    
+     $(".select").comboSelect();//popup combo select
+        var td = $('#bookingTable').DataTable({
+            //stateSave: true,
+            responsive: true,
+            "processing": true,
+		"serverSide": true,
+		"ajax": "/booking/ajaxbookings",
+            dom: 'C<"clear">lfrtip',
+            colVis: {
+                activate: "mouseover",
+                exclude: [0, 1, 10,11,13,<?php echo $fieldcounts; ?> ]
+            },
+//            "ajax": {
+//                "url": "/booking/ajaxbookings",
+//                "dataSrc": "data"
+//            },
+            "columnDefs": [{
+                    "targets": -1,
+                    "data": null,
+                    "render": function (data, type, full, meta) {
+                        var myDate = new Date();
+                        
+                        var m = myDate.getMonth() + 1;
+                            var d = myDate.getDate();
+                            m = m > 9 ? m : "0"+m;
+                            d = d > 9 ? d : "0"+d;
+                            
+                       // var month = (d.getMonth()+1) > 9 ? month : "0" + (d.getMonth())+1;
+                       // var date = d.getDate() > 9 ? date : "0" + d.getDate();
+                       // var currentDate = myDate.getFullYear() + "-" + (m) + "-" + (d);
+
+                         
+                        var traveldate = data[3];
+                        //var someday;
+                        var today, someday, text;
+today = new Date();
+someday = new Date(traveldate);
+
+var diff = (someday - today)/1000;
+   var diff =  (Math.floor(diff));
+   var days = Math.floor(diff/(24*60*60));
+                      //  alert(days)
+                        // alert(traveldate);
+
+                        // var cd = '2015/09/18';
+                        //var td = '2015/09/20';
+                        //  var days = (traveldate - currentDate) / 86400000;
+                        //alert(traveldate);
+                        // alert(currentDate);
+                      //  var days = parseInt(traveldate.substring(8, 10)) - parseInt(currentDate.substring(8, 10));
+                       // alert(days);
+                        // var dataval = "/admin/finance/tdrrateedit/" + data[1];
+                        var stausChk="";
+                        var stausChk1="";
+                        var stlmnt = "";
+                         var stausChkC = "";
+                         var download = "";
+                        var view = "";
+                          if (data[6] != "Sharecab" && data[6] != "Deal") {
+                        // GENERAL BOOKING
+                         
+                        view = '<a class="" id="' + data[1] + '" href="javascript:void(0)" onclick=viewme(this.id,0)><span class="userEditOptionTxt">View</span></a>';
+                      
+                    // /GENRAL BOOKING
+                    } 
+                    else if(data[6] == "Sharecab") {
+                        // SHARE CAB
+                        view = '<a class="" id="' + data[1] + '" href="javascript:void(0)" onclick=viewme(this.id,1)><span class="userEditOptionTxt">View</span></a>';
+                      
+                    }
+                   else  if(data[6] == "Deal") {
+                        // SHARE CAB
+                        view = '<a class="" id="' + data[1] + '" href="javascript:void(0)" onclick=viewme(this.id,2)><span class="userEditOptionTxt">View</span></a>';
+                      
+                    }
+                        if(data[13]==1 && data[13]!=2)
+                        {
+                         if(data[10]==0){
+                             if (data[6] != "Sharecab") {
+                        // GENERAL BOOKING
+                         
+                         stausChk= ' <a class="frwrdpopup" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Forward</span></a>';
+                      
+                    // /GENRAL BOOKING
+                    } 
+                    else {
+                        // SHARE CAB
+                         stausChk= ' <a class="frwrdpopup" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Forward</span></a>';
+                      
+                    }
+                         }
+                         else{  stausChk= ' <a class="detailspopup" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Fleet Partner Details</span></a>';
+                             
+                         }
+                         if(data[11]==1){
+                             stausChk1= '<a class="adddriverdetail" id="_' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Add Driver Details</span></a>';
+                             stlmnt = ' <a class=""  href="javascript:void(0)" onclick=doSettlement(' + data[1] + ')><span class="userEditOptionTxt">Settlement</span></a>';
+                              download = ' <a class=""  href="javascript:void(0)" onclick=getdownloaddutyslip(' + data[1] + ')><span class="userEditOptionTxt">Download</span></a>';
+                         }
+                         
+                 }
+                  if (data[13] != "0")
+                            {
+                        if (days >= 0)
+                        {
+                            if (data[13] == "2")
+                            {
+                                if (data[14] == "1")
+                            {
+                                stausChkC= '<a class="popup3" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Cancellation View</span></a>';
+                            }
+                            else {
+                                stausChkC= '<a class="popup2" id="' + data[1] + '" href="javascript:popup()"><span class="userEditOptionTxt">Refund</span></a>';
+                            }
+
+                                //stausChkC='<a class="popup1" id="' + data[1] + '" href=""><span class="userEditOptionTxt">Already Booking Canceled</span></a>';
+                            }
+                            else
+                            {
+                                stausChkC='<a class="popup1" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Booking Cancel</span></a>';
+                            }
+// if (data[13] == "2")
+//                        {
+//                            if (data[14] == "1")
+//                            {
+//                                return '<span class="userEditOptionsDiv"><span class="userEditOptionsPopup" style="min-width:auto"><a class="popup3" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Cancellation View</span></a></span></span>';
+//                            }
+//                            else {
+//                                return '<span class="userEditOptionsDiv"><span class="userEditOptionsPopup" style="min-width:auto"><a class="popup4" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">View</span></a><a class="popup2" id="' + data[1] + '" href="javascript:popup()"><span class="userEditOptionTxt">Refund</span></a></span></span>';
+//                            }
+//                        }
+//                        else
+//                        {
+//                            return '<span class="userEditOptionsDiv"><span class="userEditOptionsPopup" style="min-width:auto"><a class="popup4" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">View</span></a><a class="popup" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Forward</span></a><a class="popup1" id="' + data[1] + '" href="javascript:popup()"><span class="userEditOptionTxt">Booking Cancel</span></a></span></span>';
+//                        }
+                        }
+                         
+                          }
+                     
+                        return '<span class="userEditOptionsDiv"><span class="userEditOptionsPopup" style="min-width: auto; display: none;">'+ view +' <a class="paymentdetails" id="' + data[1] + '" href="javascript:void(0)"><span class="userEditOptionTxt">Payment Details</span></a> '+stausChk + stausChk1 + stlmnt + stausChkC + download +'</span></span>';
+                    },
+                    // "defaultContent": "<span class='userEditOptionsDiv'><span class='userEditOptionsPopup'><span class='userEditOptionTxt'><a href='/admin/user/subuseredit/%s'>Modify Sub User</a></span><span class='userEditOptionTxt status'  id='%s'><a  href='javascript:void(0)' >Change Status</a></span></span></span>" ,
+                    "orderable": false
+                },
+                {
+                    "targets": [ 1 ],
+                    "visible": false,
+                    
+                },
+                            {
+                    "targets": 13,
+                    "data": null,
+                    "render": function (data, type, full, meta) {
+                        if (data[13] == "1")
+                        {
+                            return '<span class="label label-success">Confirm</span>';
+                        }
+                        else if(data[13] == "0")
+                        {
+                            return '<span class="label label-warning">Pending</span>';
+                        }
+                         else if(data[13] == "2")
+                        {
+                            return '<span class="label label-warning">Canceled</span>';
+                        }
+                        else
+                        {
+                            return '<span class="label label-success">Settled</span>';
+                        }
+                    },
+                },
+                      {
+                "targets": [ 10 ],
+                "visible": false
+            },
+                          {
+                "targets": [ 11 ],
+                "visible": false
+            },
+//                            {
+//                "targets": [ 14 ],
+//                "visible": false
+//            },
+                {
+                    "searchable": false,
+                    "orderable": false,
+                    "targets": 0,
+                     "defaultContent": ""
+                }],
+                 "fnDrawCallback": function () { 
+                  $(".userEditOptionsDiv").hover(function () {
+                $(this).children('.userEditOptionsPopup').show();
+            }, function () {
+                $(this).children('.userEditOptionsPopup').hide();
+            }),
+                    
+            $('.paymentdetails').click(function () {
+
+               
+                var getviewValue = $(this).attr('id');
+                
+                // alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue,sectionvalu:1};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/paymentdetails",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+                        //  $('body').css("overflow","hidden");
+                         if(data!="")
+                        {
+                       var data1= JSON.stringify(data);
+                        $('#popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                       
+                            
+                        var html = '<div class="commonPopupClose" onclick="closeme();"></div><div class=""> <table class="table table-striped table-bordered center" >';
+                        html +='<tr class="dataTable-title" style="background:#41b1b0; color:#fff;"><td  class=text-center> &nbsp; Sr No  </td><td> Payment Company </td><td> Payment Date</td><td> Paid Amount</td></tr>';
+                        var count=0;
+                         var totalBasicFare;
+                         var balance;
+                         var paidamount;
+                        $.each(data, function (k, v) {
+                          totalBasicFare=v.totalBasicFare;
+                          balance=v.balance;
+                     
+
+                          if(balance<0)
+                          {
+                              balance = Math.abs(balance);
+                              balance=balance+" Cr";
+                          }
+                          paidamount=v.paidamount;
+                            html += "<tr><td class=text-center>" + ++count + "</td><td>" + v.pgcompanyname + "</td><td>" + v.paymentDateTime + "</td><td>" + v.amount + "</td></tr>";
+                           
+                        });
+                        html += "<tr><td class=text-center></td><td>Total Amount: " + totalBasicFare + "</td><td>Balance Amount: " + balance + "</td><td>Paid Amount: " + paidamount + "</td></tr>";
+                         html = html + '</table></div>';
+                        $('#popup_box').html(html);
+                        }
+                        else
+                        {
+                            swal({
+ title: "No transactions happend yet..",
+ html: true,
+ showConfirmButton:false,
+ showCancelButton:true
+});
+                        }
+                       
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+                    
+                       $('.frwrdpopup').click(function () {
+
+                // alert('okoko');
+
+                //   var get  =  $('div.inneraction').children('a.frwrdpopup').attr('id')(); 
+                //var get  =   $('span#cool a.frwrdpopup').eq(1).attr('id');
+                // var get  =   $(this).attr('id');
+                // alert(get);
+                var getviewValue = $(this).attr('id');
+                
+                // alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/forwardto",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+                        //  $('body').css("overflow","hidden");
+                         if(data!="")
+                        {
+                       var data1= JSON.stringify(data);
+                        $('#popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                       
+                            
+                        var html = '<div class="commonPopupClose" onclick="closeme();"></div><div class=""> <table class="table table-striped table-bordered center" >';
+                        html +='<tr class="dataTable-title" style="background:#41b1b0; color:#fff;"><td  class=text-center> &nbsp; Sr No  </td><td> Company Name </td><td> Contact Person</td><td> Contact No</td><td> Booked Fare</td><td> FP Rate </td><td> Difference </td><td> Action </td></tr>';
+                        var count=0;
+                        $.each(data, function (k, v) {
+                          
+                            html += "<tr><td class=text-center>" + ++count + "</td><td>" + v.companyName + "</td><td>" + v.companyOwner + "</td><td>" + v.ownerContactNo + "</td><td>" + v.bookedFare + "</td><td>" + v.totalFareVendor + "</td><td>" + v.FareDiff + "</td><td> <a href='javascript:void(0)' onclick='forwardtoVendor("+ JSON.stringify(v)+")' > forward </a> </td></tr>";
+                           
+                        });
+                         html = html + '</table></div>';
+                        $('#popup_box').html(html);
+                        }
+                        else
+                        {
+                            swal({
+ title: "Add Fleet Partner",
+ text: "<a href='user/useradd'>Add Fleet Partner</a>",
+ html: true,
+ showConfirmButton:false,
+ showCancelButton:true
+});
+                        }
+                       
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+          
+            $('.detailspopup').click(function () {
+
+                // alert('okoko');
+
+                //   var get  =  $('div.inneraction').children('a.frwrdpopup').attr('id')(); 
+                //var get  =   $('span#cool a.frwrdpopup').eq(1).attr('id');
+                // var get  =   $(this).attr('id');
+                // alert(get);
+                var getviewValue = $(this).attr('id');
+                
+                // alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/forwadvendordetails",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+                       // alert(data[13])
+                        //  $('body').css("overflow","hidden");
+                       var data1= JSON.stringify(data);
+                        $('#popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                        var html = '<div class="commonPopupClose" onclick="closeme();"></div><div class=""> <table class="table table-striped table-bordered center" >';
+                        html +='<tr class="dataTable-title" style="background:#41b1b0; color:#fff;"><td  class=text-center> &nbsp; Sr No  </td><td> Company Name </td><td> Contact Person</td><td> Contact No</td><td> Booked Fare</td><td> FP Rate </td><td> Difference </td><td> Action </td></tr>';
+                        var count=0;
+                        $.each(data, function (k, v) {
+                            if(v.status==0)
+                            {
+                                accstausChk= "<a href='javascript:void(0)' ><span onclick='accrej("+ v.bVendorId+","+'"'+v.refNo+'"'+",1)'> Accept</span> </a>"
+                            }
+                            else
+                            {
+                                accstausChk= "<a href='javascript:void(0)' ><span onclick='accrej("+ v.bVendorId+","+'"'+v.refNo+'"'+",2)'> Reject</span> </a>"
+                            }
+                            html += "<tr><td class=text-center>" + ++count + "</td><td>" + v.companyName + "</td><td>" + v.companyOwner + "</td><td>" + v.ownerContactNo + "</td><td>" + v.bookedFare + "</td><td>" + v.totalFareVendor + "</td><td>" + v.FareDiff + "</td><td>"+accstausChk+"</td></tr>";
+                           
+                        });
+                        html = html + '</table></div>';
+                        $('#popup_box').html(html);
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+                               
+  //popup to get refno from table and set to first popup
+            $(".adddriverdetail").click(function(obj){
+           var splitval=(this.id).split('_');
+            popup();
+            $("#hdnrefno").val(splitval[1]);
+            });
+            
+            
+             $('.popup1').click(function () {
+
+                //alert('okoko');
+
+                //   var get  =  $('div.inneraction').children('a.popup').attr('id')(); 
+                //var get  =   $('span#cool a.popup').eq(1).attr('id');
+                // var get  =   $(this).attr('id');
+                // alert(get);
+                var getviewValue = $(this).attr('id');
+                // alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue,textdata:1};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/ajaxbookingcanclationCal",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+
+                        // alert(data['policyhour'][0]['hours']); 
+                        //     bid= data['bid'];  
+//                        console.log(data);
+                        var html1 = '';
+                        var spaidamt;
+                        refund = data['RefundAmt'];
+                        diffrence = data['Defferencehours'];
+                        hour = data['hour1'];
+                        uId = data['uId'];
+                        var htmlre = '';
+                        var status = data['cancelationStatus'];
+                        spaidamt = data['spaidamount'];
+//                        alert(data['seatNo']);
+                       // $('body').css("overflow", "hidden");
+                        $('#popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                        $('#popup_box').empty();
+                        $('#add_driver_popup_box').empty();
+                        $('#add_vehicle_popup_box').empty();
+//$('#popup_box').fadeIn("fast");
+//                $(".commonPopupContainerDiv").css({"display": "block"});
+//                $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+//                $('.commonPopupContainerDiv#updv').css("height",'100%');
+//                var html = '<div class="commonPopupClose" onclick="closeme();"></div>\n\
+//                <div class="commonPopupHeader">Travel Details</div>';
+                        if (hour < 0)
+                        {
+
+                            $('#popup_box').append('<div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Booking Cancellation</div><div>"Your Booking Cancel Time is Over !!!!!"</div>');
+                        }
+                        else {
+                            
+                           // alert(data['flag']);
+                            
+                            if (data['flag'] == 1)
+                            {
+
+                                html = '<div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Booking Cancellation</div><div class="commonPopupContentDiv"><div class="commonPopupLabel">Pickup City:</div><div class="commonPopupValue">' + data['City'] + '</div>\n\
+                                 <div class="commonPopupLabel">Your TotalFare: </div><div class="commonPopupValue">' + data['TotalFare'] + '</div><div class="commonPopupLabel">Your PaidAmount: </div><div class="commonPopupValue">' + data['paidamount'] + '</div><div class="commonPopupLabel">Your Deduction Amount :</div><div class="commonPopupValue">' + data['Deduct'] + '</div> <div class="commonPopupLabel"> Finally Refund Amount: </div><div class="commonPopupValue">' + data['RefundAmt'] + '</div><div class="commonPopupLabel"> MinAmount: </div><div class="commonPopupValue">' + data['defaultmindeduction'] + "</div>"
+                                html += '<table width="500" border="1"><tr><td class="rateTableTotalCol"> Hours ' + '</td><td class="rateTableTotalCol"> ' + 'Percentage ' + '</td></tr>'
+
+                                for (var i = 0; i < (data['policyhour'].length); i++)
+                                { // alert(data['policyhour'][i]['hours'])
+
+                                    html += '<tr><td class="rateTableCol">' + data['policyhour'][i]['hours'] + '</td><td class="rateTableCol">' + data['policyhour'][i]['percentage'] + '</td> </tr>';
+                                }
+
+                                html += '</table><div class="commonPopupLabel">Cancellation Reason :</div><div style="width:400px; height:auto; margin-top:10px" class="commonPopupValue"><textarea class="commonSelectAreaInput" id="remark" name="remark"></textarea></div>' +
+                                        '<br><div class="commonPopupLabel"></div><div class="commonFormDtlsDiv " style="margin: 0; "> <button  class="btn btn-success  status"  id="' + data['id'] + '"  value="Confirm" onclick="bookingcancel(id,this) ">Confirm </button></div>'
+                            }
+                            else {
+//                          var shbId =data['shbId'];
+                                //alert(shbId)
+
+                                html = '<div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Cancellation Policy </div><div class="commonPopupContentDiv">'
+
+                                html += '<table width="100%" border="1"><tr><td class="rateTableTotalCol"> Cancellation Time ' + '</td><td class="rateTableTotalCol"> ' + ' Charges % ' + '</td><td class="rateTableTotalCol"> ' + 'Minimum  Charges ' + '</td></tr>'
+                              //  html += '<tr><td class="rateTableCol">' + 'Between  ' + data['canceldateTime'][0] + " AND " + data['pickupdateTime'] + '</td><td class="rateTableCol">' + 100 + '</td></td> <td class="rateTableCol">' + data['defaultmindeduction'] + '</td> </tr>';
+                                var counter = 1;
+                                var j = 0;
+                                for (var i = 0; i < (data['canceldateTime'].length); i++)
+                                {
+//                                    var j=(i)+1;
+
+                                    var j = counter++;
+                                    if (j >= data['canceldateTime'].length)
+                                    {
+                                        j = (data['canceldateTime'].length) - 1;
+                                        var k = j + 1;
+                                    }
+                                    if (k >= data['canceldateTime'].length)
+                                    {
+
+
+//                               alert(j)
+                                        html += '<tr><td class="rateTableCol">' + 'Before  ' + data['canceldateTime'][i] + '</td><td class="rateTableCol">' +"--" + '</td> <td class="rateTableCol">' + data['defaultmindeduction'] + '</td></tr>';
+                                    }
+                                    else {
+                                        html += '<tr><td class="rateTableCol">' + 'Between  ' + data['canceldateTime'][j] + " AND  " + data['canceldateTime'][i] + '</td><td class="rateTableCol">' + data['policyhour'][i]['percentage'] + '</td> <td class="rateTableCol">' + data['defaultmindeduction'] + '</td></tr>';
+                                    }
+                                }
+//                 alert("ds")
+                                html += '<table style="margin-top:10px;" width="100%" border="1"><tr><td class="rateTableTotalCol"> ' + 'Name ' + '</td><td class="rateTableTotalCol"> Seat No ' + '</td><td class="rateTableTotalCol"> ' + 'Paid Amount ' + '</td><td class="rateTableTotalCol"> ' + 'Cancellation Charges ' + '</td><td class="rateTableTotalCol"> ' + 'Refund Amoount ' + '</td><td class="rateTableTotalCol"> ' + 'User Id ' + '</td><td class="rateTableTotalCol"> ' + 'Action ' + '</td></tr>'
+                                var arraybook = '';
+                                for (var i = 0; i < (data['seatNo'].length); i++)
+                                {
+                                    if (arraybook == '')
+                                    {
+                                        arraybook += data['seatNo'][i];
+                                    }
+                                    else
+                                    {
+                                        arraybook += "," + data['seatNo'][i];
+                                    }
+                                }
+                                var arraybookseat = (arraybook).split(",");
+                                var counter = -1;
+                    var countcancelseat=-1;
+                                for (var i = 0; i < (data['seatNo'].length); i++)
+                                {
+
+//                                   
+                                    for (var j = 0; j < (data['seatNo'][i].length); j++)
+                                    {
+                                        if (data['gender'][i][j] == 0)
+                                        {
+                                            data['gender'][i][j] = "Male";
+                                        } else {
+                                            data['gender'][i][j] = "Female";
+                                        }
+                                        counter++;
+
+//                                      console.log(counter)
+                                        if ($.inArray(data['seatNo'][i][j], data['cancelseat']) == -1)
+                                        {
+//                                     console.log(data['RefundAmt'][counter])
+                                            html += '<tr><td class="rateTableCol">' + data['travelerName'][i][j] + '</td> <td class="rateTableCol">' + data['seatNo'][i][j] + '</td><td class="rateTableCol">' + data['farebysheet'][counter] + '</td><td class="rateTableCol">' + data['Deduct'][counter] + '</td><td class="rateTableCol">' + data['shrefund'][counter] + '</td><td class="rateTableCol">' + data['csuId'][i] + '</td><td class="rateTableCol">' + '<input type="checkbox" class="cancelchk"   value=' + data['seatNo'][i][j] + ',' + data['shrefund'][counter] + ',' + data['farebysheet'][counter] + ',' + data['Deduct'][counter] + ',' + data['csuId'][i] + ' ">' + '</td></tr>';
+                                        }
+                                        else
+                                        {
+                                                            countcancelseat++;
+//                                    alert(data['arrayrefunded'][countcancelseat])
+                                            if (data['cancelstatus'][countcancelseat] == 0) {
+                                                htmlre += '<tr><td class="rateTableCol">' + data['travelerName'][i][j] + '</td> <td class="rateTableCol">' + data['seatNo'][i][j] + '</td><td class="rateTableCol">' + data['farebysheet'][counter] + '</td><td class="rateTableCol">' + data['Deduct'][counter] + '</td><td class="rateTableCol">' + data['shrefund'][counter] + '</td><td class="rateTableCol">' + '<input type="checkbox" class="cancelchk refundchk"   value=' + data['seatNo'][i][j] + ',' + data['shrefund'][counter] + ',' + data['farebysheet'][counter] + ',' + data['Deduct'][counter] + ',' + data['csuId'][i] + ' ">' + '</td><td><input type="text" value="' + data['arrayrefunded'][countcancelseat] + '" id="refundamt' + data['seatNo'][i][j] + '" name="refundamt" ></td></tr>';
+                                            } else
+                                            {
+                                          htmlre += '<tr><td class="rateTableCol">' + data['travelerName'][i][j] + '</td> <td class="rateTableCol">' + data['seatNo'][i][j] + '</td><td class="rateTableCol">' + data['farebysheet'][counter] + '</td><td class="rateTableCol">' + data['Deduct'][counter] + '</td><td class="rateTableCol">' + data['shrefund'][counter] + '</td><td class="rateTableCol">' +'-'+ '</td><td><input type="text" value="' + data['arrayrefunded'][countcancelseat] + '" id="refundamt' + data['seatNo'][i][j] + '" name="refundamt" readonly ></td></tr>';
+                                            }
+                                        }
+                                    }
+                                }
+                                html += '</table><div class="commonPopupLabel">Cancellation Reason :</div><div style="width:400px; height:auto; margin-top:10px" class="commonPopupValue"><textarea class="commonSelectAreaInput" id="remark" name="remark"></textarea></div>' +
+                                        '<br><div class="commonPopupLabel"></div> <button  class="btn btn-success  status check"  id="' + data['id'] + '"  value="Confirm" onclick="bookingcancel(id,this) ">Confirm </button>'
+                            }
+                            if (data['flag'] == 2)
+                            {
+
+                                html1 = '<br><br><div class="commonPopupHeader">Cancellation Refund</div>'
+                                html1 += '<table style="margin-top:10px;" width="100%" border="1"><tr><td class="rateTableTotalCol"> ' + 'Name ' + '</td><td class="rateTableTotalCol"> Seat No ' + '</td><td class="rateTableTotalCol"> ' + 'Paid Amount ' + '</td><td class="rateTableTotalCol"> ' + 'Cancellation Charges ' + '</td><td class="rateTableTotalCol"> ' + 'Refund Amoount ' + '</td><td class="rateTableTotalCol"> ' + 'Action ' + '</td> <td class="rateTableTotalCol"> ' + 'Refunded Amont ' + '</td> </tr>'
+
+                                html1 += htmlre;
+                                html1 += '</table><br><div class="commonPopupLabel"><td><button  class="btn btn-success  status"  id="' + data['id'] + '"  value="ccrcash" onclick="bookingrefund(' + data['id'] + ',' + spaidamt + ') ">CCR Cash </button> &nbsp;&nbsp;&nbsp;&nbsp;' + '<button  class="btn btn-success  status"  id="' + data['id'] + '"  value="Online" onclick="bookingrefund(id) ">Online</button></td> </div>'
+                            }
+                            html += html1;
+                            $('#popup_box').append(html);
+                            
+                        }
+
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+        
+         
+ 
+            // ----------------
+                 },
+                   "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+               
+            //    var recentvalue=0;
+            //console.log(aData)
+            if(aData[6] == "Sharecab")
+            {
+                           var myData = {textData: aData[1],section:1};
+           $.ajax({
+            type: "POST",
+            url: "/booking/getsharecabvalues", // call to Action method in COntroller
+            data: myData,
+            dataType: "JSON",
+            success: function (data) {
+               // console.log(data.farebysheet)
+                //var resultval=JSON.parse(data);
+               // alert(resultval.farebysheet);
+                 
+                     if(data.status==0)
+                     {
+                         $('td:eq(10)', nRow).html('<span class="label label-warning">Pending</span>');
+                     }
+                      if(data.status==2)
+                     {
+                         $('td:eq(10)', nRow).html('<span class="label label-warning">Canceled</span>');
+                     }
+                   $('td:eq(9)', nRow).html(data.farebysheet);
+                 
+               
+            },
+            failure: (function () {
+                alert("Failure!!");
+            })
+        });
+        }
+
+    },
+            "order": [[1, 'desc']]
+
+        });
+        td.on('order.dt search.dt', function () {
+            td.column(0, {search: 'applied', order: 'applied'}).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        }).draw();
+
+        td.on('order.dt search.dt', function () {
+
+            $('.popup2').click(function () {
+
+//                alert(refund);
+
+
+                var getviewValue = $(this).attr('id');
+//                 alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/ajaxrefundamt",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+                        var paidamt = data['paidamount'];
+//                    var id=data['id'];
+//                    $('#canclepopup').empty(); 
+              if(data['cancelationStatus']==1)
+                {
+                     $('#popup_box').fadeIn("fast");
+                      $("#my_popup_box").css({"display": "none"});
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                        $('#popup_box').empty();
+                       
+
+                        html = '<div class="commonPopupContainerDiv"><div class="commonPopupBox"><div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Cancellation And Refund  Details</div>'
+                        html += '<div class="commonPopupLabel">Paid Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['paidamount'] + '</div>' +
+                                '<div class="commonPopupLabel">Refund Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['refundamt'] + '</div>' +
+                                '<div class="commonPopupLabel">Deduct Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['deduct'] + '</div>' +
+                                '<div class="commonPopupLabel">Cancellation Request Date:</div><div style="width:400px; height:auto;" class="commonPopupValue">' + data['cancelationReqDateTime'] + '</div>' +
+                                '<div class="commonPopupLabel">Refunded Date:</div><div style="width:400px; height:auto;" class="commonPopupValue">' + data['RefundcancelationDateTime'] + '</div>'
+                        $('#popup_box').append(html); 
+                }
+                else
+                {
+                    
+                
+                        $('#popup_box').fadeIn("fast");
+                         $("#my_popup_box").css({"display": "none"});
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                        $('#popup_box').empty();
+                       
+//                          refundamt
+                        $('#refundamt').val('');
+                        html = '<div class="commonPopupContainerDiv"><div class="commonPopupBox"><div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Cancellation Refund</div>'
+                        html += '<div class="commonPopupLabel">Refund Amount :</div><div style="width:400px; height:auto; margin-top:10px" class="commonPopupValue"><div class="commonFormDtlsDiv"><input type="text" value="' + data['refundamt'] + '" id="refundamt" name="refundamt" ></div></div>' +
+                                '<div class="commonPopupLabel">Paid Amount:</div><div style="width:400px; height:auto; margin-top:10px" class="commonPopupValue id="paidamount">' + data['paidamount'] + '</div>' +
+                                '<div class="commonPopupLabel">Refund Request Date:</div><div style="width:400px; height:auto; margin-top:10px" class="commonPopupValue">' + data['cancelationReqDateTime'] + '</div>' +
+                                '<br><div class="commonPopupLabel"></div><div class="commonFormDtlsDiv " style="margin: 0; "> <button  class="btn btn-success  status"  id="' + data['id'] + '"  value="ccrcash" onclick="bookingrefund(' + data['id'] + ',' + data['paidamount'] + ') ">CCR Cash </button> &nbsp;&nbsp;&nbsp;&nbsp;' + '<button  class="btn btn-success  status"  id="' + data['id'] + '"  value="Online" onclick="bookingrefund(id) ">Online</button></div>'
+
+                        $('#popup_box').append(html);
+}
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+        }).draw();
+
+        td.on('order.dt search.dt', function () {
+
+            $('.popup3').click(function () {
+
+                var getviewValue = $(this).attr('id');
+//                 alert(getviewValue);
+                var myData = {textgetviewValueData: getviewValue};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/ajaxcanceldetails",
+                    data: myData,
+                    dataType: "json",
+                    success: function (data) {
+                        $('body').css("overflow", "hidden");
+                        $('#popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('#popup_box').empty();
+
+
+                        html = '<div class="commonPopupContainerDiv"><div class="commonPopupBox"><div class="commonPopupClose" onclick="closeme();"></div> <div class="commonPopupHeader">Cancellation And Refund  Details</div>'
+                        html += '<div class="commonPopupLabel">Paid Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['paidamount'] + '</div>' +
+                                '<div class="commonPopupLabel">Refund Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['refundamt'] + '</div>' +
+                                '<div class="commonPopupLabel">Deduct Amount :</div><div style="width:400px; height:auto; " class="commonPopupValue"> ' + data['deduct'] + '</div>' +
+                                '<div class="commonPopupLabel">Cancellation Request Date:</div><div style="width:400px; height:auto;" class="commonPopupValue">' + data['cancelationReqDateTime'] + '</div>' +
+                                '<div class="commonPopupLabel">Refunded Date:</div><div style="width:400px; height:auto;" class="commonPopupValue">' + data['RefundcancelationDateTime'] + '</div>'
+                        $('#popup_box').append(html);
+                          $('#btmdv').css("height", 0+'px');
+                //alert(((parseInt)($('.commonPopupContainerDiv#updv').css("height")))+","+(parseInt)($('#popup_box').css("height")))
+                //var ht=((parseInt)($('.commonPopupContainerDiv#updv').css("height"))+((parseInt)($('.commonPopupContainerDiv#btmdv').css("height"))))-((parseInt)($('#popup_box').css("height")));
+                var ht=(parseInt)($('#popup_box').css("height"))-(parseInt)($('.commonPopupContainerDiv#updv').css("height"));
+              // alert((parseInt)($('#popup_box').css("height"))+","+(parseInt)($('.commonPopupContainerDiv#updv').css("height"))+","+(ht+280))
+                $('#btmdv').css("height", (ht+270)+'px');
+                $('#btmdv').css("opacity", 0);
+                    },
+                    failure: (
+                            function ()
+                            {
+                                alert("Failure!!");
+                            }
+                    )
+
+
+                });
+            });
+        }).draw();
+    
+//popup if form sbmited success driver[register] or vehicle
+if(''!=='<?= $err_driver ?>' || 'driver' == '<?= isset($scc[0])?$scc[0]:""; ?>' || 'vehicle' == '<?= isset($scc[0])?$scc[0]:""; ?>')
+            {
+                if('driver' == '<?= isset($scc[0])?$scc[0]:""; ?>')
+                {  
+                    var hdnrefno= '<?= $regiform->get('dyn_hdn_refno')->getValue(); ?>';
+                    $("#hdnrefno").val(hdnrefno);//set refno value
+                }
+                if('vehicle' == '<?= isset($scc[0])?$scc[0]:""; ?>')
+                {  
+                    var hdnrefno= '<?= $vehicleform->get('dyn_hdn_refno')->getValue(); ?>';
+                    $("#hdnrefno").val(hdnrefno);// set refno value
+                }
+                popup();
+            }
+           //popup if refistration error
+          if(''!=='<?= $err_regiform ?>')
+           {
+               $('#add_driver_popup_box').fadeIn("fast");
+                $(".commonPopupContainerDiv").css({"display": "block"});
+                $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                $('.commonPopupContainerDiv#updv').css("height",'100%');
+                var html = '<div class="commonPopupClose" onclick="closeme();"></div><div class="commonPopupContentDiv"> <table class=table >';
+                $('#add_driver_popup_box').append(html);
+            }
+           //popup if vehicle error
+          if(''!=='<?= $err_vehicleform ?>')
+            {
+                $('#add_vehicle_popup_box').fadeIn("fast");
+                $(".commonPopupContainerDiv").css({"display": "block"});
+                $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                $('.commonPopupContainerDiv#updv').css("height",'100%');
+                var html = '<div class="commonPopupClose" onclick="closeme();"></div><div class="commonPopupContentDiv"> <table class=table >';
+                $('#add_vehicle_popup_box').append(html);
+            }
+
+
+  });
+   function bookingcancel(id,obj) {
+        var remark = $("#remark").val();
+//          var =$("#canclechk").val();
+// var seatno = [];
+var validation=false;
+if($(obj).hasClass('check'))
+{
+        var getallvalue = $('.cancelchk:checked').map(function () {
+           validation=true;
+        
+        return this.value;
+        }).get();
+       
+    
+if(validation==false){
+alert('please select at least one booking for cancel');
+return false;
+      }   
+}
+else
+{
+    validation=true;
+}
+    var error = 0;
+        if (remark == '') {
+            error = 1;
+            alert('Comment cannot be empty.');
+        }
+
+        if (error) {
+            return false;
+        } else {
+
+
+
+            var yes = confirm('Are you sure that you want to cancel Booking Confirm ?');
+
+            if (yes)
+            {
+                var getValue = id;
+//alert(getallvalue);
+                var myData = {textData: getValue, type: "Bookingadd", remark: remark, bid: id, refund: refund, hours: diffrence, bookingcancel: "bookingcancel", uId: uId, getallvalue: getallvalue};
+                $.ajax({
+                    type: "POST",
+                    url: "/booking/changecancelstatus", // call to Action method in COntroller 
+                    data: myData,
+                    dataType: "JSON",
+                    success: function (data) {
+                        alert("Your Booking Is Confirm cancel !!")
+                        window.location.replace("/booking/bookings");
+                        //td.ajax.reload( null, false);
+                    },
+                    failure: (function () {
+                        alert("Failure!!");
+                    })
+                });
+            }
+
+        }
+    }
+    function bookingrefund(id, paidamt) {
+
+        var refundamt = $("#refundamt").val();
+        var getallvalue = $('.refundchk:checked').map(function () {
+            var txtvalue = $(this).parent('td').next('td').children('input').val();
+            return this.value + "," + txtvalue;
+        }).get();
+
+//if(getallvalue==''){
+//alert('please select at least one booking for refund');
+//return;
+//}
+//var arr;
+//var str=getallvalue.toString()
+//  alert(str.split(",",3)) ;
+//// arr=
+//$.each(getallvalue, function(index, value) { 
+// alert(index + ': ' + value) ;
+//
+//});
+
+
+
+        var error = 0;
+        if (refundamt == '') {
+            error = 1;
+            alert('Comment cannot be empty.');
+        }
+
+        if (error) {
+            return false;
+        } else {
+//               var   spaidamt =paidamt;
+            var getValue = id;
+//   alert(spaidamt)
+//     alert(paidamt)
+            if (getallvalue != '')
+            {
+//                 alert("hiii")
+                for (var i = 0; i < getallvalue.length; i++)
+                {
+                    var tempgetvalue = getallvalue[i].split(",");
+//      alert(tempgetvalue[2])
+//       alert(tempgetvalue[5])
+                    if (tempgetvalue[5] == '') {
+                        error = 1;
+                        alert('Comment cannot be empty.');
+                    }
+                    if (error) {
+                        return false;
+                    }
+
+                    if (tempgetvalue[5] <= tempgetvalue[2]) {
+//                      flag=1;
+                    } else
+                    {
+                        var flag = 1;
+                        alert("Refund Amount Exceeds Than Paid Amount!! ")
+                        return false;
+                    }
+                }
+                if (flag != 1) {
+                   
+                    var myData = {textData: getValue, refundamt: refundamt, bookingcancel: "bookingcancel", paidamt: paidamt, getallvalue: getallvalue};
+                    $.ajax({
+                        type: "POST",
+                        url: "/booking/cancelrefund", // call to Action method in Controller 
+                        data: myData,
+                        dataType: "JSON",
+                        success: function (data) {
+                            alert("Your Refund will Forword in Your Wallet!!")
+                            window.location.replace("/booking/bookings");
+
+                        },
+                        failure: (function () {
+                            alert("Failure!!");
+                        })
+                    });
+                }
+
+
+            } else {
+
+                if (refundamt <= paidamt) {
+
+                    var myData = {textData: getValue, refundamt: refundamt, bookingcancel: "bookingcancel", paidamt: paidamt, getallvalue: getallvalue};
+                    $.ajax({
+                        type: "POST",
+                        url: "/booking/cancelrefund", // call to Action method in Controller 
+                        data: myData,
+                        dataType: "JSON",
+                        success: function (data) {
+                            alert("Your Refund will Forword in Your Wallet!!")
+                            window.location.replace("/booking/bookings");
+
+                        },
+                        failure: (function () {
+                            alert("Failure!!");
+                        })
+                    });
+                } else
+                {  
+                    alert("Refund Amount Exceeds Than Paid Amount!!  or Select Check Box ")
+                }
+
+            }
+        }
+    }
+    function forwardtoVendor(data){
+    var td = $('#bookingTable').DataTable();
+           swal({   
+               title: "Forward To",   
+               text: '"'+data['companyName']+'"',   
+               type: "info",   
+               showCancelButton: true,   
+               closeOnConfirm: true,   
+              
+           }, function(){
+               
+            var myData = {data: data};
+            $.ajax({
+                    type: "POST",
+                    url: "/booking/forwardtovendor",
+                    data: myData,
+                    dataType: "text",
+                    success: function (data) { 
+                        closeme();
+                        if(data=="1"){
+                           
+                            swal("Done!", "Forward Successfully!!", "success");
+                            td.ajax.reload( null, false);
+                             
+                        }else{
+                            swal("Error", "an unexpected error has occurred", "error");
+                        }
+                    },
+                    error: (
+                           function(data, errorThrown)
+                            {
+                                swal("Error", errorThrown, "error");
+                                //alert('request failed :'+errorThrown);
+                            }
+                    )
+            });
+        });
+    }
+   function accrej(data,refno,statval){ 
+            // var td = $('#popup_box').DataTable();
+            if(statval==1)
+            {
+            var yes=confirm('Do you want to Accept this booking?'); 
+        }
+        else
+        {
+            var yes=confirm('Do you want to Reject this booking?'); 
+        }
+            
+            if(yes) 
+            { 
+                var myData = {textData:data,refno:refno,statval:statval,type:"Bookingvendor"}; 
+             $.ajax({ 
+                type:"POST", 
+                url:"/booking/changebacceptstatus", // call to Action method in COntroller 
+                data:myData, 
+                dataType: "JSON", 
+ 
+                success: function(data){
+                    window.location.reload();
+ 
+                }, 
+               failure: (function(){ 
+                   alert("Failure!!"); 
+                  }) 
+             }); 
+         } 
+ 
+    }
+    
+    function getdownloaddutyslip(id) {
+        window.open("/booking/getdownloaddutyslip?id=" + id);
+    }
+    
+    function viewme(id, sharecab) {
+        var myData = {id: id,textdata:1};
+         if (sharecab==0) {
+        $.ajax({
+            type: "POST",
+            url: "/booking/viewdetails", // call to Action method in COntroller
+            data: myData,
+            dataType: "JSON",
+            success: function (data) {
+                // $('body').css("overflow","hidden");
+                $('#popup_box').fadeIn("fast");
+                $(".commonPopupContainerDiv").css({"display": "block"});
+                $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                $('.commonPopupContainerDiv#updv').css("height",'100%');
+                var html = '<div class="commonPopupClose" onclick="closeme();"></div>\n\
+                <div class="commonPopupHeader">Travel Details</div>';
+                var htmlHeader = "";
+                var html1 = "";
+                var html2 = "";
+                var html3 = "";
+                var html4 = "";
+                var bookingId;
+                var Travel_Date;
+                var Pickup_Time;
+                var No_Of_Days;
+                var Pickup_City;
+                var Destination_City;
+                var Booking_DateTime;
+                var Vehicle_Name;
+                var KM_Rate;
+                var HR_Rate;
+                var KM_Rate_One_way;
+                var No_Of_Cars;
+                var Travel_Root;
+                var Other_Requirement;
+                var Travel_Type;
+                var travellerName;
+                var travellerEmailId;
+                var travellerContactNo;
+                var travellerPickupAddress;
+                var landMark;
+                var Approx_Distance;
+                var Min_Distance_Per_Day;
+                var Min_Hour_Per_Day;
+                var Driver_Allowance;
+                var Other_Charges;
+                var Night_Halt;
+                var Night_Charges;
+                var State_Charges;
+                var Hill_Charges;
+                var Service_Tax;
+                var Full_Day;
+                var Half_Day;
+                var Transfer;
+                var Total_Approx_Fare;
+
+              //  var str = ("bookingId Travel_Date Pickup_Time No_Of_Days Pickup_City  Destination_City Vehicle_Name No_Of_Cars Travel_Root Other_Requirement Travel_Type Booking_DateTime travellerName travellerEmailId travellerContactNo travellerPickupAddress landMark KM_Rate");
+               // var str2 = ("KM_Rate_One_way Approx_Distance Min_Distance_Per_Day Driver_Allowance  Night_Halt Night_Charges Total_Approx_Fare Other_Charges  State_Charges  Hill_Charges Service_Tax");
+                $.each(data, function (k, v) {
+
+                    $.each(v, function (key, value) {
+                        var regex = new RegExp('\\b' + key + '\\b');
+                       
+
+                            switch (key) {
+
+                                case "Reference_No":
+                                    bookingId = '<span class="cabsaasPopupCommonLabelDiv1"> BookingId:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case "Travel_Date":
+                                    Travel_Date = '<span class="cabsaasPopupCommonLabelDiv1"> Travel Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case "Travel_End_Date":
+                                    Travel_End_Date = '<span class="cabsaasPopupCommonLabelDiv1"> Travel End Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case "Pickup_Time":
+                                    Pickup_Time = '<span class="cabsaasPopupCommonLabelDiv1"> Pickup Time:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case "Travel_End_Time":
+                                    Travel_End_Time = '<span class="cabsaasPopupCommonLabelDiv1"> Travel End Time:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case 'No_Of_Days':
+                                    No_Of_Days = value;
+                                    break;
+
+                                case 'Booking_DateTime':
+                                    Booking_DateTime = '<span class="commonPopupLabel"> Booking DateTime:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+
+                                case 'ther_Requirement':
+                                    Other_Requirement = '<span class="cabsaasPopupCommonLabelDiv1"> Other Requirement:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case 'Pickup_City':
+                                    Pickup_City = '<span class="cabsaasPopupCommonLabelDiv1"> Pickup City:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+
+                                case 'Destination_City':
+                                    Destination_City = '<span class="commonPopupLabel"> Destination City:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+
+                                case 'Vehicle_Name':
+                                    Vehicle_Name = '<span class="commonPopupLabel"> Vehicle Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+
+                                case 'KM_Rate':
+                                    KM_Rate = value;
+                                    //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                case 'HR_Rate':
+                                    HR_Rate = value;
+                                    //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                case 'KM_Rate_One_way':
+                                    KM_Rate_One_way = value;
+                                    //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+
+                                case 'No_Of_Cars':
+                                    No_Of_Cars = value;
+                                    '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> No Of Cars :</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+
+                                case 'Travel_Root':
+                                    Travel_Root = value;
+                                    break;
+
+                                case 'Travel_Type':
+                                    Travel_Type = value;
+                                    break;
+
+                                case 'travellerName':
+                                    travellerName = '<span class="commonPopupLabel"> Customer Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'travellerEmailId':
+                                    travellerEmailId = '<span class="commonPopupLabel"> Customer Email:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'travellerContactNo':
+                                    travellerContactNo = '<span class="commonPopupLabel">  Contact No:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'travellerPickupAddress':
+                                    travellerPickupAddress = '<span class="commonPopupLabel"> Pickup Address:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'landMark':
+                                    landMark = '<span class="commonPopupLabel"> Land Mark:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                           
+                                case "Approx_Distance":
+                                    Approx_Distance = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Approx Distance:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                               
+                                case "Min_Distance_Per_Day":
+                                    Min_Distance_Per_Day = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Min Distance Per Day:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                    
+                                case "Min_Hour_Per_Day":
+                                    Min_Hour_Per_Day = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Min Distance Per Day:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                
+                                case "Driver_Allowance":
+                                    Driver_Allowance = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Driver Allowance:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                case "Other_Charges":
+                                    Other_Charges = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Other Charges:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Night_Halt":
+                                    Night_Halt = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Night Halt:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Night_Charges":
+                                    Night_Charges = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Night Charges:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                case "Total_Approx_Fare":
+                                    Total_Approx_Fare = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                    
+                                case "Other_Charges":
+                                    Other_Charges = parseInt(value);//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+
+                                case "State_Charges":
+                                    State_Charges = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Hill_Charges":
+                                    Hill_Charges = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Service_Tax":
+                                    Service_Tax = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                
+                                case "Full_Day":
+                                    Full_Day = parseInt(value);//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                   
+                                case "Half_Day":
+                                    Half_Day = parseInt(value);//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                
+                                case "Transfer":
+                                    Transfer = parseInt(value);//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                
+
+                            
+                            //  key = key.replace(/_/gi, " ");
+                            //html2 += '<span class="cabsaasPopupCommonLabelDiv1">' + key + ':</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                        }
+                    });
+                });
+
+                Approx_Distance=($(Approx_Distance).length > 0) ? Approx_Distance : "0";
+                if(Travel_Type=='Transfer'){
+                
+                    Travel_Root='City Location';
+                    
+                }
+
+                No_Of_Days = ($(No_Of_Days).length > 0) ? No_Of_Days : "1";
+                htmlHeader = '<div class="cabsaasPopupSubHeadr">Travel Type:   <span class="teal">  '
+                        + Travel_Type
+                        + ' ( ' + Travel_Root + ' )&nbsp;( ' + No_Of_Days + ' Day/s )</span></div><div class="commonPopupContentDiv">';
+
+                html1 = htmlHeader
+                        + "<div class=cabsaasPopupCommonContentDiv>"
+                        + bookingId
+                        + Travel_Date
+                        + Pickup_Time
+                        + Pickup_City
+                        + "</div>";
+
+                Destination_City = ($(Destination_City).length > 0) ? Destination_City : "";
+
+                html2 += Booking_DateTime
+                        + Destination_City
+                        + travellerPickupAddress
+                        + landMark
+                        + travellerName
+                        + travellerContactNo
+                        + travellerEmailId
+                        + Vehicle_Name;
+                
+                var KM_Limit = (Approx_Distance > (Min_Distance_Per_Day * No_Of_Days)) ? Approx_Distance : (Min_Distance_Per_Day * No_Of_Days);
+                
+                html3 =  '<div class="commonPopupLabel"> No Of Cars : </div> <div class="commonPopupValue"> ' + No_Of_Cars + '</div>'
+                        + "<div class='commonPopupLabel' > KM Limit : </div><div class='commonPopupValue'>" + KM_Limit + "</div>"
+                        + "<div class='commonPopupLabel' > No Of Days : </div><div class='commonPopupValue'>" + No_Of_Days + "</div>";
+
+
+
+                // var serviceTax=5.6;
+                
+                Other_Charges = (Other_Charges)?Other_Charges:"0";
+                State_Charges= (State_Charges)?State_Charges:"0";
+                Hill_Charges  = (Hill_Charges)?Hill_Charges:"0";
+                
+                
+                if(Travel_Root=='Roundtrip' || Travel_Root=='Multicity') {
+                    var basicFare = (KM_Limit * KM_Rate);
+                    var driverAllowance = Driver_Allowance * No_Of_Days;
+                    
+                    var nightHaltCharges = (Night_Halt * (No_Of_Days - 1));
+                    var oshCharges = parseInt(Other_Charges) + parseInt(State_Charges) + parseInt(Hill_Charges);
+                    var totalCharges = (basicFare + driverAllowance + nightHaltCharges + oshCharges) * No_Of_Cars;
+                    var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                   
+                    var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    if(nightHaltCharges>0)
+                            {
+                                var nightchargestr='<tr width="500" border="1"><tr><td class="rateTableCol"> Night Halts Charges : Rs '+Night_Halt + ' x '+ (No_Of_Days - 1) +' Night/s =</td><td class="rateTableCol">  '+nightHaltCharges+' Rs</td></tr>'
+                            }
+                            else
+                            {
+                                var nightchargestr="";
+                            }
+                            
+                            if(oshCharges>0)
+                            {
+                                var oshChargesstr='<tr width="500" border="1"><tr><td class="rateTableCol">  Other + State + Hill : ( Rs '+Other_Charges+' + Rs '+State_Charges+' + Rs '+Hill_Charges+' ) x '+No_Of_Cars+' car/s  = </td><td class="rateTableCol">  '+oshCharges+' Rs </td></tr>'
+                            }
+                            else
+                            {
+                                var oshChargesstr="";
+                            }
+
+                    html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                            + '<div class=commonPopupContentDiv>'
+                            + '<div class="commonPopupLabel"> Approx.  distance:</div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+                            + '<div class="commonPopupLabel">Minimum charged distance:</div><div class="commonPopupValue"> ' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                            + ' <div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Fare calulated:</b></span></div>'
+                            + '<table width="500" border="1"><tr><td class="rateTableCol"> Basic Fare: (' + KM_Limit + ' Kms x Rs  ' + KM_Rate + ' / Km  ) =</td><td class="rateTableCol"> '  + basicFare +' Rs</td></tr>'
+                            + '<tr width="500" border="1"><tr><td class="rateTableCol"> Driver Allowance : Rs '+Driver_Allowance+' x '+No_Of_Days+' Day/s = </td><td class="rateTableCol">    '+driverAllowance+' Rs </td></tr>'
+                            + nightchargestr
+                            + oshChargesstr
+                            + '<tr width="500" border="1"><tr><td class="rateTableCol">  Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> '+totalFare+' Rs</td></tr>'
+                            + '</table><div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows: </b></span></div>'
+                            + '<div class="rateExtraCharge"><b> After '+Approx_Distance+' Kms :</b><br>'
+                                + '+ Driver Charges : Rs  '+Driver_Allowance+' per day <br>'
+                                + '+ Rs '+KM_Rate+' Per Km <br>'
+                                + '+ Parking, Toll, State Tax as actual </div>'
+                                +  '</div>'
+
+                            + '</div> </div>';
+                }
+                
+                if(Travel_Root=='Oneway') {
+                   // var basicFare = (KM_Limit * KM_Rate);
+                   KM_Limit=KM_Limit/2;
+                    var basicFare = ((KM_Limit * KM_Rate) + (KM_Limit * KM_Rate_One_way));
+                    var driverAllowance = Driver_Allowance * No_Of_Days;
+                    var oshCharges = parseInt(Other_Charges) + parseInt(State_Charges) + parseInt(Hill_Charges);
+                    var totalCharges = (basicFare + driverAllowance +  oshCharges) * No_Of_Cars;
+                    var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                    var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    
+                     if(oshCharges>0)
+                            {
+                                var oshChargesstr='<tr width="500" border="1"><tr><td class="rateTableCol">  Other + State + Hill : ( Rs '+Other_Charges+' + Rs '+State_Charges+' + Rs '+Hill_Charges+' )x'+No_Of_Cars+' car/s  = </td><td class="rateTableCol">  '+oshCharges+' Rs </td></tr>'
+                            }
+                            else
+                            {
+                                var oshChargesstr="";
+                            }
+
+
+                    html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                    + '<div class=commonPopupContentDiv>'
+                    + '<div class="commonPopupLabel"> Approx.  distance:</div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+                    + '<div class="commonPopupLabel">Minimum charged distance:</div><div class="commonPopupValue"> ' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                    + ' <div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Fare calulated:</b></span></div>'
+                    + '<table width="500" border="1"><tr><td class="rateTableCol">Per Km : ( ' + KM_Limit + ' Kms X Rs  ' + KM_Rate + ' / Km  ) = </td><td class="rateTableCol"> '+(KM_Limit * KM_Rate)+' Rs</td></tr>'
+                    + '<tr width="500" border="1"><tr><td class="rateTableCol"> Per Km : ( ' + KM_Limit + ' Kms X Rs  ' + KM_Rate_One_way + ' / Km  ) =  </td><td class="rateTableCol"> '+(KM_Limit * KM_Rate_One_way)+' Rs</td></tr>'
+                    + '<tr width="500" border="1"><tr><td class="rateTableCol"> Driver Allowance : Rs '+Driver_Allowance+' x '+No_Of_Days+' Day/s = </td><td class="rateTableCol">    '+driverAllowance+' Rs </td></tr>'
+                    + oshChargesstr
+                    + '<tr width="500" border="1"><tr><td class="rateTableCol">  Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+                    + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> '+totalFare+' Rs</td></tr>'
+                    + '</table><div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows: </b></span></div>'
+                    + '<div class="rateExtraCharge"><b> After '+Approx_Distance+' Kms :</b><br>'
+                        + '+ Driver Charges : Rs  '+Driver_Allowance+' per day <br>'
+                        + '+ Rs '+KM_Rate+' Per Km <br>'
+                        + '+ Parking, Toll, State Tax as actual </div>'
+                        +  '</div>'
+
+                    + '</div> </div>';
+                }
+
+                if(Travel_Root=='Fullday') {
+                    
+                    var basicFare = parseInt(Full_Day);
+                    var totalCharges = (basicFare+parseInt(Other_Charges)) * No_Of_Cars * No_Of_Days;
+                    var serviceTaxApllied = Math.round(((totalCharges) * Service_Tax) / 100);
+                    var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    
+                    
+                     html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                            + '<div class=commonPopupContentDiv">'
+                            + '<div class="commonPopupLabel">Approx.  distance : </div>  <div class="commonPopupValue"> ' + Approx_Distance + ' kms. </div> '
+                           + '<div class="commonPopupLabel">Minimum charged distance:</div><div class="commonPopupValue"> ' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Fare calulated:</b></span></div>'
+                    + '<table width="500" border="1">'
+//                            + '<tr width="500" border="1"><tr><td class="rateTableCol"> Driver Allowance : Rs '+Driver_Allowance+' x '+No_Of_Days+' Day/s = </td><td class="rateTableCol">    '+driverAllowance+' Rs </td></tr>'
+//                            + nightchargestr
+//                            + oshChargesstr
+//                            + '<tr width="500" border="1"><tr><td class="rateTableCol">  Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+//                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> '+totalFare+' Rs</td></tr>'
+                            + '</table>'
+                            + '<table width="500" border="1"><tr><td class="rateTableCol"> (BasicFare+ Other Charges) x Cars x Days: &nbsp;&nbsp; ( '+basicFare+' + '+Other_Charges+' ) x '+ No_Of_Cars +' x '+ No_Of_Days +'  = </td><td class="rateTableCol"> '  + totalCharges +' Rs </td></tr>'
+                            + '<tr width="500" border="1"><tr><td class="rateTableCol"> Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> Rs'+totalFare+'</td></tr></table>'
+                            + '<span class=col-md-12> Minimum charged hour / distance per day : </span> '
+                            + '<span class=col-md-12> '+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km </span> '
+                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows:</b></span></div>'
+                            + '<div class="rateExtraCharge"><b>'+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km : </b><br> '
+                            + '+ '+HR_Rate+' / Hour <br>'
+                            + '+ '+KM_Rate+' / Km <br>'
+                            + '+ Paking & Toll Charges </div>'  
+                    
+                            + '</div> </div>';
+
+                }
+                
+                
+                 if(Travel_Root=='Halfday') {
+                    
+                    var basicFare = parseInt(Half_Day);
+                    var totalCharges = (basicFare+parseInt(Other_Charges)) * No_Of_Cars * No_Of_Days;
+                    var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                    var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    
+                     html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                            + '<div class=commonPopupContentDiv">'
+                            + '<div class="commonPopupLabel"> Approx. distance : </div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+                            + '<div class="commonPopupLabel">Minimum charged distance:</div><div class="commonPopupValue"> ' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                            + '<div class="cabsaasPopupSubHeadr"><span class="teal"> <b> Fare calulated:</b></span></div>'
+                            + '<table width="500" border="1">'
+                            + '</table>'
+                            + '<table width="500" border="1"><tr><td class="rateTableCol"> (BasicFare+Other_Charges)xCarsxDays  ('+basicFare+' + '+parseInt(Other_Charges)+' ) x '+ No_Of_Cars +' x '+ No_Of_Days +'  =</td><td class="rateTableCol"> '  + totalCharges +' Rs </td></tr>'
+                            
+                             + '<tr width="500" border="1"><tr><td class="rateTableCol"> Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> '+totalFare+' Rs</td></tr></table>'
+                            + '<span class=col-md-12> Minimum charged hour / distance per day : </span> '
+                            + '<span class=col-md-12> '+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km </span> '
+                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows:</b></span></div>'
+                            + '<div class="rateExtraCharge"><b>'+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km : </b><br> '
+                            + '+ '+HR_Rate+' / Hour <br>'
+                            + '+ '+KM_Rate+' / Km <br>'
+                            + '+ Paking & Toll Charges </div>'  
+                    
+                            + '</div> </div>';
+                    
+//                     html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+//                            + '<div class=commonPopupContentDiv">'
+//                            + '<div class="commonPopupLabel"> Approx. distance : </div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+//                            + '<div class="commonPopupLabel"> Minimum charged distance : </div>  <div class="commonPopupValue">' + Min_Distance_Per_Day + ' Kms / Day </div>'
+//                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Fare calulated:</b></span></div>'
+//                            
+//                            + '<table width="500" border="1"><tr><td class="rateTableCol"> (BasicFare+Other_Charges)xCarsxDays  ('+basicFare+' + '+Other Charges+' ) x '+ No_Of_Cars +' x '+ No_Of_Days +'  =</td><td class="rateTableCol"> '  + totalCharges +' Rs </td></tr>'
+//                            
+//                             + '<tr width="500" border="1"><tr><td class="rateTableCol"> Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+//                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol">6970 Rs '+totalFare+' Rs</td></tr></table>'
+//                            + '<span class=col-md-12> Minimum charged hour / distance per day : </span> '
+//                            + '<span class=col-md-12> '+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km </span> '
+//                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows:</b></span></div>'
+//                            + '<div class="rateExtraCharge"><b>'+Min_Hour_Per_Day+' Hour / '+Min_Distance_Per_Day + 'Km : </b><br> '
+//                            + '+ '+HR_Rate+' / Hour <br>'
+//                            + '+ '+KM_Rate+' / Km <br>'
+//                            + '+ Paking & Toll Charges </div>'  
+//                    
+//                            + '</div> </div>';
+
+                }
+                
+                if(Travel_Root=='City Location') {
+                    
+                    var basicFare = parseInt(Transfer);
+                    var totalCharges = (basicFare+Other_Charges) * No_Of_Cars * No_Of_Days;
+                    var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                    var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    
+                     html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                            + '<div class=commonPopupContentDiv>'
+                            + '<div class="commonPopupLabel"> Approx. distance : </div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+                            + '<div class="commonPopupLabel"> Minimum charged distance : </div>  <div class="commonPopupValue">' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                            + '<div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Fare calulated:</b></span></div>'                         
+                            + '<table width="500" border="1"><tr><td class="rateTableCol"> (BasicFare+Other_Charges)xCarsxDays  ('+basicFare+' + '+Other_Charges+' ) x '+ No_Of_Cars +' x '+ No_Of_Days +'  =</td><td class="rateTableCol"> '  + totalCharges +' Rs </td></tr>'
+                            
+                            + '<tr width="500" border="1"><tr><td class="rateTableCol"> Service Tax = </td><td class="rateTableCol"> '+serviceTaxApllied+' Rs</td></tr>'
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol">  '+totalFare+' Rs</td></tr></table>'
+                            
+                    
+                            + '</div> </div>';
+
+                }
+                
+                if (Travel_Root == 'Point to Point') {
+                        var basicFare = Transfer;
+                        var totalCharges = ((basicFare + parseInt(Other_Charges)) * No_Of_Cars * No_Of_Days);
+                        var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                        var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                        html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                                + '<div class=commonPopupContentDiv style="font-size:13px">'
+                                + '<span class=col-md-12> Approx.  distance : ' + Approx_Distance + ' kms. </span> '
+                                + '<span class=col-md-12> Minimum charged distance : ' + Min_Distance_Per_Day + ' Kms / Day </span>'
+                                + '<span class=col-md-12> <u> Fare calulated: </u></span>'
+                                + '<span class=col-md-12> <span class=col-md-7> (BasicFare+Other_Charges)xCarsxDays: &nbsp;&nbsp; ( ' + basicFare + ' + ' + Other_Charges + ' ) x ' + No_Of_Cars + ' x ' + No_Of_Days + '  = </span><span class="spanVal"> ' + totalCharges + ' Rs </span></span>'
+                                + '<span class=col-md-12> <span class=col-md-7> Service Tax =  </span><span class="spanVal" > ' + serviceTaxApllied + ' Rs</span></span>'
+                                + '<span class=col-md-12> <span class="col-md-7 spantot"> Total Fare =  </span><span class="spanVal spantot" > ' + totalFare + ' Rs</span></span>'
+
+
+                                + '</div> </div>';
+                    }
+
+
+
+                html += html1
+                        + html2
+                        + html3
+                        + html4
+                        ;
+                        
+                 $('#popup_box').html(html);
+                 $('#btmdv').css("height", 0+'px');
+                //alert(((parseInt)($('.commonPopupContainerDiv#updv').css("height")))+","+(parseInt)($('#popup_box').css("height")))
+                //var ht=((parseInt)($('.commonPopupContainerDiv#updv').css("height"))+((parseInt)($('.commonPopupContainerDiv#btmdv').css("height"))))-((parseInt)($('#popup_box').css("height")));
+                var ht=(parseInt)($('#popup_box').css("height"))-(parseInt)($('.commonPopupContainerDiv#updv').css("height"));
+              // alert((parseInt)($('#popup_box').css("height"))+","+(parseInt)($('.commonPopupContainerDiv#updv').css("height"))+","+(ht+280))
+                $('#btmdv').css("height", (ht+270)+'px');
+                $('#btmdv').css("opacity", 0);
+              
+            },
+            failure: (function () {
+                alert("Failure!!");
+            })
+        });
+        
+}else if (sharecab==1){
+// SHARE CAB
+            var vars = {};
+            $.ajax({
+                type: "POST",
+                url: "/booking/viewdetailsofsharecab", // call to Action method in COntroller
+                data: myData,
+                dataType: "JSON",
+                success: function (data) {
+                    // $('body').css("overflow","hidden");
+                    $('#popup_box').fadeIn("fast");
+                    $(".commonPopupContainerDiv").css({"display": "block"});
+                    $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                    $('.commonPopupContainerDiv#updv').css("height", '100%');
+                    var html = '<div class="commonPopupClose" onclick="closeme();"></div>\n\
+                <div class="commonPopupHeader">Travel Details</div>';
+                    var htmlHeader = "";
+                    var html1 = "";
+                    var html2 = "";
+                    var html3 = "";
+                    var html4 = "";
+                    var html5 = "";
+                    var shbId = "";
+
+                    var seatNo = "";
+                    var pickloc = "";
+                    var droploc = "";
+                    var distance = "";
+                    var gender = "";
+                    var travelerName = "";
+                    var uId = "";
+                    var sharecabtotalfare = "";
+                    var farebysheet = "";
+                    var bs_Status = "";
+                    var bookingId;
+                    var Travel_Date;
+                    var Pickup_Time;
+                    var No_Of_Days;
+                    var Pickup_City;
+                    var Destination_City;
+                    var Booking_DateTime;
+                    var Vehicle_Name;
+                    var KM_Rate;
+                    var HR_Rate;
+                    var KM_Rate_One_way;
+                    var No_Of_Cars;
+                    var Travel_Root;
+                    var Other_Requirement;
+                    var Travel_Type;
+                    var travellerName;
+                    var travellerEmailId;
+                    var travellerContactNo;
+                    var travellerPickupAddress;
+                    var landMark;
+                    var Approx_Distance;
+                    var Min_Distance_Per_Day;
+                    var Min_Hour_Per_Day;
+                    var Driver_Allowance;
+                    var Other_Charges;
+                    var Night_Halt;
+                    var Night_Charges;
+                    var State_Charges;
+                    var Hill_Charges;
+                    var Service_Tax;
+                    var Full_Day;
+                    var Half_Day;
+                    var Transfer;
+                    var Total_Approx_Fare;
+                    var Dval;
+                    var PickupFrom = "";
+                    var DropTo = "";
+                    var pcity = "";
+                    var dcity = "";
+                    
+                    //  var str = ("bookingId Travel_Date Pickup_Time No_Of_Days Pickup_City  Destination_City Vehicle_Name No_Of_Cars Travel_Root Other_Requirement Travel_Type Booking_DateTime travellerName travellerEmailId travellerContactNo travellerPickupAddress landMark KM_Rate");
+                    // var str2 = ("KM_Rate_One_way Approx_Distance Min_Distance_Per_Day Driver_Allowance  Night_Halt Night_Charges Total_Approx_Fare Other_Charges  State_Charges  Hill_Charges Service_Tax");
+
+                    $.each(data[0], function (key, value) {
+
+                        //     $.each(v, function (key, value) {
+
+                        var regex = new RegExp('\\b' + key + '\\b');
+                        if (value != '') {
+
+
+                            switch (key) {
+
+                                case 'ref_No':
+//   bookingId = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Ref No:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>'; 
+                                    break;
+                                case "bookingId":
+                                    bookingId = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> BookingId:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Travel_Date":
+                                    Travel_Date = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Travel Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Travel_End_Date":
+                                    Travel_End_Date = '<span class="cabsaasPopupCommonLabelDiv1"> Travel End Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                    break;
+                                case "Pickup_Time":
+                                    Pickup_Time = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Pickup Time:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case 'Booking_DateTime':
+                                    Booking_DateTime = '<span class="commonPopupLabel"> Booking DateTime:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'Pickup_City':
+                                    pcity = value;
+                                    Pickup_City = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Pickup City:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case 'Destination_City':
+                                    dcity = value;
+                                    Destination_City = '<span class="commonPopupLabel"> Destination City:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'Vehicle_Name':
+                                    Vehicle_Name = '<span class="commonPopupLabel"> Vehicle Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case 'No_Of_Cars':
+                                    No_Of_Cars = value;
+                                    '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> No Of Cars :</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case 'Travel_Root':
+                                    Travel_Root = value;
+                                    break;
+                                case 'Travel_Type':
+                                    Travel_Type = value;
+                                    break;
+                                case 'travellerName':
+                                    travellerName = '<span class="commonPopupLabel"> Customer Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                    break;
+                                case "Approx_Distance":
+                                    Approx_Distance = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Approx Distance:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case "Total_Approx_Fare":
+                                    Total_Approx_Fare = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                    break;
+                                case 'pickloc':
+                                    pickloc = value;
+                                    break;
+                                case 'droploc':
+                                    droploc = value;
+                                    break;
+                                case 'Dval':
+                                    Dval = value;
+                                    break;
+                                case 'Service_Tax':
+                                    Service_Tax = parseFloat(value);
+                                    break;
+                            }
+                            //  key = key.replace(/_/gi, " ");
+                            //html2 += '<span class="cabsaasPopupCommonLabelDiv1">' + key + ':</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                        }
+                        //   });
+                    });
+
+                    var tr2 = "";
+
+                    // var str2 = ("KM_Rate_One_way Approx_Distance Min_Distance_Per_Day Driver_Allowance  Night_Halt Night_Charges Total_Approx_Fare Other_Charges  State_Charges  Hill_Charges Service_Tax");
+
+                    $.each(data[1], function (k, v) {
+
+                        $.each(v, function (key, value) {
+
+                            var regex = new RegExp('\\b' + key + '\\b');
+                            if (value != '') {
+                                switch (key) {
+                                    case 'shbId':
+                                        shbId = value;
+                                        break;
+
+                                    case 'seatNo':
+                                        seatNo = value.split(",");
+                                        break;
+
+                                    case 'distance':
+                                        distance = value;
+                                        break;
+                                    case 'gender':
+                                        gender = value.split(",");
+                                        break;
+                                    case 'travelerName':
+                                        travelerName = value.split(",");
+                                        break;
+                                    case 'uId':
+                                        uId = value;
+                                        break;
+                                    case 'totalFare':
+                                        sharecabtotalfare = value;
+                                        break;
+                                    case 'farebysheet':
+                                        farebysheet = value.split(",");
+                                        break;
+                                    case 'status':
+                                        bs_Status = value.split(",");
+                                }
+                            }
+
+
+                        });
+                        for (var num = 0; num < seatNo.length; num++) {
+                            var genderTemp = "";
+
+                            if (gender[num] == 0) {
+                                genderTemp = 'Male'
+                            }
+                            else {
+                                genderTemp = "Female";
+                            }
+                            var statusTemp = ""
+                            var bsstatus = bs_Status[num].split('-');
+                            if (bsstatus[1] == 1) {
+                                statusTemp = "Confirm"
+                            }
+                            else if (bsstatus[1] == 2) {
+                                statusTemp = "Cancelled"
+                            }
+
+                            tr2 += '<tr><td> ' + seatNo[num] + ' </td><td> ' + travelerName[num] + ' </td><td> ' + farebysheet[num] + ' </td><td> ' + genderTemp + ' </td><td> ' + uId + ' </td><td> ' + statusTemp + ' </td></tr>';
+                        }
+
+                    });
+
+                    
+                    
+                      var dvalStr = "";
+                   
+                      var dvalTot=0;
+                    // FIND DISCOUNT AGAINST UID IN DISCOUNT 
+                    $.each(data[2], function (key, value) {
+                   
+                      if (parseInt(value['Dval']) > 0) {
+                         dvalTot = dvalTot+ parseInt(value['Dval']);
+                        dvalStr += '<span class=col-md-12> <span class=col-md-7> Discount Applied : [ '+value["uid"]+' ]</span><span class="spanVal" > - ' + value["Dval"]  + ' Rs </span> </span>';
+                    } else {
+                        dvalStr = "";
+                    }
+
+                    });
+                    
+                    
+                    Approx_Distance = ($(Approx_Distance).length > 0) ? Approx_Distance : 0;
+                    Dval = ($(Dval).length > 0) ? Dval : 0;
+                    Service_Tax = ($(Service_Tax).length > 0) ? Service_Tax : 0;
+
+                    PickupFrom = '<span class="commonPopupLabel"> Pickup From:</span> <span class="commonPopupValue"> ' + pcity + ' [ ' + pickloc + ' ]' + '</span>';
+                    DropTo = '<span class="commonPopupLabel"> Drop To:</span> <span class="commonPopupValue"> ' + dcity + ' [ ' + droploc + ' ]' + '</span>';
+
+//                    var dvalStr = "";
+//                    if (Dval > 0) {
+//                        dvalStr = '<span class=col-md-12> <span class=col-md-7> Discount Applied : </span><span class="spanVal" > - ' + Dval + ' Rs </span> </span>';
+//                    } else {
+//                        dvalStr = "";
+//                    }
+
+
+                    No_Of_Days = ($(No_Of_Days).length > 0) ? No_Of_Days : "1";
+                    htmlHeader = '<div class="cabsaasPopupSubHeadr col-md-12">Travel Type:   <span class="teal">  '
+                            + Travel_Type
+                            + ' ( ' + Travel_Root + ' )&nbsp;( ' + No_Of_Days + ' Day/s )</span></div><div class="commonPopupContentDiv">';
+                    html1 = htmlHeader
+                            + "<div class=col-md-12>"
+                            + bookingId
+                            + Travel_Date
+                            + Pickup_Time
+                            + Pickup_City
+                            + "</div>";
+                    Destination_City = ($(Destination_City).length > 0) ? Destination_City : "";
+
+                    html2 += "<div class=col-md-12>"
+                            + Booking_DateTime
+                            + Destination_City
+                            + PickupFrom
+                            + DropTo
+                            + Vehicle_Name
+                            + "</div>";
+
+                    html3 = "<div class=col-md-12>"
+                            + '<span class="cabsaasPopupCommonLabelDiv1" > <u> Traveller Details : </u></span></div>'
+
+                    Other_Charges = (Other_Charges) ? Other_Charges : 0;
+                    State_Charges = (State_Charges) ? State_Charges : 0;
+                    Hill_Charges = (Hill_Charges) ? Hill_Charges : 0;
+
+//    var seatNo = "";
+//                    var pickloc = "";
+//                    var droploc = "";
+//                    var distance = "";
+//                    var gender = "";
+//                    var travelerName = "";
+//                    var uId = "";
+//                    var sharecabtotalfare = "";
+//                    var farebysheet = "";
+//                    var status = ""    
+
+//                    var tr2 = "";
+//                    for (var num = 0; num < seatNo.length; num++) {
+//                        tr2 += '<tr><td> ' + seatNo[num] + ' </td><td> ' + travelerName[num] + ' </td><td> ' + farebysheet[num] + ' </td><td> ' + gender[num] + ' </td><td> ' + bs_Status[num] + ' </td></tr>';
+//                    }
+
+                    html4 = "<div class=col-md-12 style='margin-top:10px'>"
+                            + '<table class="table trvls">'
+                            + '<tr><th> Seat No </th><th>Names</th><th>Fare</th><th>Gender</th><th>Booked By</th><th>Status </th></tr>'
+                            + tr2
+                            + '</table>'
+                            + '</div>';
+
+
+
+                 if (Travel_Root == 'Sharecab') {
+
+                        var basicFare = parseInt(sharecabtotalfare);
+                        var totalCharges = ((basicFare + Other_Charges) * No_Of_Cars * No_Of_Days)- parseInt(dvalTot);
+                        var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                        var totalFare = Math.round((totalCharges + serviceTaxApllied));
+                        html5 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                                + '<div class=commonPopupContentDiv style="font-size:13px">'
+                                + '<table width="500" border="1"><tr><td class="rateTableCol"> (BasicFare+Other_Charges)xCarsxDays: &nbsp;&nbsp; ( ' + basicFare + ' + ' + Other_Charges + ' ) x ' + No_Of_Cars + ' x ' + No_Of_Days + '  =</td><td class="rateTableCol">Rs. '  + basicFare +'</td></tr>'
+                           + dvalStr
+                            + '<tr width="500" border="1"><tr><td class="rateTableCol">  Service Tax = </td><td class="rateTableCol">Rs.'+serviceTaxApllied+'</td></tr>'
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol">Rs. '+totalFare+' </td></tr>'
+                            + '</table>'
+                                + '</div> </div>';
+                    }
+
+                    html += '<div id="nni">' + html1
+                            + html2
+                            + html3
+                            + html4
+                            + html5 + '</div>'
+
+                            ;
+                   // html += '<span class=col-md-12> <input type="button" id="btnSave" value="Save PNG" onclick="popupToPdf()" /> </span>';
+                    $('#popup_box').html(html);
+                    $('#btmdv').css("height", 0 + 'px');
+                    //alert(((parseInt)($('.commonPopupContainerDiv#updv').css("height")))+","+(parseInt)($('#popup_box').css("height")))
+                    //var ht=((parseInt)($('.commonPopupContainerDiv#updv').css("height"))+((parseInt)($('.commonPopupContainerDiv#btmdv').css("height"))))-((parseInt)($('#popup_box').css("height")));
+                    var ht = (parseInt)($('#popup_box').css("height")) - (parseInt)($('.commonPopupContainerDiv#updv').css("height"));
+                    // alert((parseInt)($('#popup_box').css("height"))+","+(parseInt)($('.commonPopupContainerDiv#updv').css("height"))+","+(ht+280))
+                    $('#btmdv').css("height", (ht + 270) + 'px');
+                    $('#btmdv').css("opacity", 0);
+                    //  pdfcreator();
+
+                },
+                failure: (function () {
+                    alert("Failure!!");
+                })
+            });
+// SHARE CAB
+        } 
+        //By Niitn 
+          else  if (sharecab==2) {
+
+            $.ajax({
+                type: "POST",
+                url: "/booking/viewdetailsfordeals", // call to Action method in COntroller
+                data: myData,
+                dataType: "JSON",
+                success: function (data) {
+                    // $('body').css("overflow","hidden");
+                    $('#popup_box').fadeIn("fast");
+                    $(".commonPopupContainerDiv").css({"display": "block"});
+                    $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                    $('.commonPopupContainerDiv#updv').css("height", '100%');
+                    var html = '<div class="commonPopupClose" onclick="closeme();"></div>\n\
+                <div class="commonPopupHeader">Travel Details</div>';
+                    var htmlHeader = "";
+                    var html1 = "";
+                    var html2 = "";
+                    var html3 = "";
+                    var html4 = "";
+                    var bookingId;
+                    var Travel_Date;
+                    var Pickup_Time;
+                    var No_Of_Days;
+                    var Pickup_City;
+                    var Destination_City;
+                    var Booking_DateTime;
+                    var Vehicle_Name;
+                    var KM_Rate;
+                    var HR_Rate;
+                    var KM_Rate_One_way;
+                    var No_Of_Cars;
+                    var Travel_Root;
+                    var Other_Requirement;
+                    var Travel_Type;
+                    var travellerName;
+                    var travellerEmailId;
+                    var travellerContactNo;
+                    var travellerPickupAddress;
+                    var landMark;
+                    var Approx_Distance;
+                    var Min_Distance_Per_Day;
+                    var Min_Hour_Per_Day;
+                    var Driver_Allowance;
+                    var Other_Charges;
+                    var Night_Halt;
+                    var Night_Charges;
+                    var State_Charges;
+                    var Hill_Charges;
+                    var Service_Tax;
+                    var Full_Day;
+                    var Half_Day;
+                    var Transfer;
+                    var Total_Approx_Fare;
+                    var Dval;
+                     var pickloc = "";
+                    var droploc = "";
+                    //  var str = ("bookingId Travel_Date Pickup_Time No_Of_Days Pickup_City  Destination_City Vehicle_Name No_Of_Cars Travel_Root Other_Requirement Travel_Type Booking_DateTime travellerName travellerEmailId travellerContactNo travellerPickupAddress landMark KM_Rate");
+                    // var str2 = ("KM_Rate_One_way Approx_Distance Min_Distance_Per_Day Driver_Allowance  Night_Halt Night_Charges Total_Approx_Fare Other_Charges  State_Charges  Hill_Charges Service_Tax");
+                    $.each(data, function (k, v) {
+
+                        $.each(v, function (key, value) {
+
+                            var regex = new RegExp('\\b' + key + '\\b');
+                            if (value != '0') {
+
+                                switch (key) {
+
+                                    case 'ref_No':
+                                        //   bookingId = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Ref No:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>'; 
+                                        break;
+                                    case "bookingId":
+                                        bookingId = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> BookingId:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Travel_Date":
+                                        Travel_Date = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Travel Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Travel_End_Date":
+                                        Travel_End_Date = '<span class="cabsaasPopupCommonLabelDiv1"> Travel End Date:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                        break;
+                                    case "Pickup_Time":
+                                        Pickup_Time = '<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Pickup Time:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Travel_End_Time":
+                                        Travel_End_Time = '<span class="cabsaasPopupCommonLabelDiv1"> Travel End Time:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                        break;
+                                    case 'No_Of_Days':
+                                        No_Of_Days = value;
+                                        break;
+                                    case 'Booking_DateTime':
+                                        Booking_DateTime = '<span class="commonPopupLabel"> Booking DateTime:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'ther_Requirement':
+                                        Other_Requirement = '<span class="cabsaasPopupCommonLabelDiv1"> Other Requirement:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                                        break;
+                                    case 'Pickup_City':
+                                        Pickup_City = value;//'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Pickup City:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'Destination_City':
+                                        Destination_City = value;//'<span class="commonPopupLabel"> Destination City:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'Vehicle_Name':
+                                        Vehicle_Name = '<span class="commonPopupLabel"> Vehicle Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'KM_Rate':
+                                        KM_Rate = value;
+                                        //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'HR_Rate':
+                                        HR_Rate = value;
+                                        //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'KM_Rate_One_way':
+                                        KM_Rate_One_way = value;
+                                        //KM_Rate = '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> KM Rate:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'No_Of_Cars':
+                                        No_Of_Cars = value;
+                                        '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> No Of Cars :</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'Travel_Root':
+                                        Travel_Root = value;
+                                        break;
+                                    case 'Travel_Type':
+                                        Travel_Type = value;
+                                        break;
+                                    case 'travellerName':
+                                        travellerName = '<span class="commonPopupLabel"> Customer Name:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'travellerEmailId':
+                                        travellerEmailId = '<span class="commonPopupLabel"> Customer Email:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'travellerContactNo':
+                                        travellerContactNo = '<span class="commonPopupLabel">  Contact No:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'travellerPickupAddress':
+                                        travellerPickupAddress = '<span class="commonPopupLabel"> Pickup Address:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case 'landMark':
+                                        landMark = '<span class="commonPopupLabel"> Land Mark:</span> <span class="commonPopupValue"> ' + value + '</span>';
+                                        break;
+                                    case "Approx_Distance":
+                                        Approx_Distance = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Approx Distance:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Min_Distance_Per_Day":
+                                        Min_Distance_Per_Day = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Min Distance Per Day:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Min_Hour_Per_Day":
+                                        Min_Hour_Per_Day = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Min Distance Per Day:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Driver_Allowance":
+                                        Driver_Allowance = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Driver Allowance:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Other_Charges":
+                                        Other_Charges = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Other Charges:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Night_Halt":
+                                        Night_Halt = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Night Halt:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Night_Charges":
+                                        Night_Charges = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Night Charges:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Total_Approx_Fare":
+                                        Total_Approx_Fare = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Other_Charges":
+                                        Other_Charges = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "State_Charges":
+                                        State_Charges = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Hill_Charges":
+                                        Hill_Charges = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Service_Tax":
+                                        Service_Tax = parseFloat(value); //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Full_Day":
+                                        Full_Day = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Half_Day":
+                                        Half_Day = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Transfer":
+                                        Transfer = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case "Dval":
+                                        Dval = value; //'<div class="col-md-3"><span class="cabsaasPopupCommonLabelDiv1"> Total Approx Fares:</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span></div>';
+                                        break;
+                                    case 'pickloc':
+                                        pickloc = value;
+                                        break;
+                                    case 'droploc':
+                                        droploc = value;
+                                        break;
+                                }
+                                //  key = key.replace(/_/gi, " ");
+                                //html2 += '<span class="cabsaasPopupCommonLabelDiv1">' + key + ':</span> <span class="cabsaasPopupCommonValueDiv1"> ' + value + '</span>';
+                            }
+                        });
+                    });
+                    
+                    
+                 var   Pickup_CityStr='<span class="commonPopupLabel"> Pickup City:</span> <span class="commonPopupValue"> ' + Pickup_City + ' [ '+ pickloc + ' ] '+ '</span>';
+                 var   Destination_CityStr='<span class="commonPopupLabel"> Destination City:</span> <span class="commonPopupValue"> ' + Destination_City + ' [ '+ droploc + ' ] '+  '</span>';
+                    
+                    Approx_Distance = ($(Approx_Distance).length > 0) ? Approx_Distance : 0;
+                    Service_Tax = ($(Service_Tax).length > 0) ? Service_Tax : 0;
+                    Dval = ($(Dval).length > 0) ? Dval : 0;
+                    var dvalStr = "";
+                    if (Dval > 0) {
+                        dvalStr = '<span class=col-md-12> <span class=col-md-7> Discount Applied : </span><span class="spanVal" > - ' + Dval + ' Rs </span> </span>';
+                    } else {
+                        dvalStr = "";
+                    }
+
+
+                   
+                    No_Of_Days = ($(No_Of_Days).length > 0) ? No_Of_Days : "1";
+                    htmlHeader = '<div class="cabsaasPopupSubHeadr col-md-12">Travel Type:   <span class="teal">  '
+                            + Travel_Type
+                            + ' ( ' + Travel_Root + ' )&nbsp;( ' + No_Of_Days + ' Day/s )</span></div><div class="commonPopupContentDiv">';
+                    html1 = htmlHeader
+                            + "<div class=col-md-12>"
+                            + bookingId
+                            + Travel_Date
+                            + Pickup_Time
+                             
+                            + "</div>";
+                    Destination_City = ($(Destination_City).length > 0) ? Destination_City : "";
+                    html2 += "<div class=col-md-12>"
+                            + Booking_DateTime
+                            + Pickup_CityStr
+                            + Destination_CityStr
+                        //    + travellerPickupAddress
+                        //    + landMark
+                            + travellerName
+                            + travellerContactNo
+                            + travellerEmailId
+                            + Vehicle_Name
+                            + "</div>";
+                    var KM_Limit = (Approx_Distance > (Min_Distance_Per_Day * No_Of_Days)) ? Approx_Distance : (Min_Distance_Per_Day * No_Of_Days);
+                    html3 = "<div class=col-md-12>"
+                            + '<div class=col-md-6><span class="cabsaasPopupCommonLabelDiv1"> No Of Cars : </span> <span class="cabsaasPopupCommonValueDiv1"> ' + No_Of_Cars + '</span></div>'
+                            + "<div class='col-md-6' ><span class='cabsaasPopupCommonLabelDiv1' > KM Limit : </span><span class='cabsaasPopupCommonValueDiv1'>" + KM_Limit + "</span></div>"
+                            + "<div class='col-md-6' ><span class='cabsaasPopupCommonLabelDiv1' > No Of Days : </span><span class='cabsaasPopupCommonValueDiv1'>" + No_Of_Days + "</span></div>" + "</div>";
+                    // var serviceTax=5.6;
+
+                    Other_Charges = (Other_Charges) ? Other_Charges : 0;
+                    State_Charges = (State_Charges) ? State_Charges : 0;
+                    Hill_Charges = (Hill_Charges) ? Hill_Charges : 0;
+          
+          
+           if(Travel_Root=='Deal' ) {
+                 var basicFare = Transfer;
+                        var totalCharges = Total_Approx_Fare;
+                        var serviceTaxApllied = Math.round((totalCharges * Service_Tax) / 100);
+                        var serviceTaxstr="";
+                         if(serviceTaxApllied>0){
+                                 serviceTaxstr= '<span class=col-md-12> <span class=col-md-7> Service Tax =  </span><span class="spanVal" > ' + serviceTaxApllied + ' Rs</span></span>';
+                            }
+                            
+                        var totalFare = Math.round(totalCharges + serviceTaxApllied);
+                    html4 = '</div><div class=commonPopupHeader>Extra Charges </div>'
+                            + '<div class=commonPopupContentDiv>'
+                            + '<div class="commonPopupLabel"> Approx.  distance:</div>  <div class="commonPopupValue">' + Approx_Distance + ' kms. </div> '
+                            + '<div class="commonPopupLabel" style="width:auto">Minimum charged distance:</div><div class="commonPopupValue"> ' + Min_Distance_Per_Day + ' Kms / Day </div>'
+                            + ' <div class="cabsaasPopupSubHeadr"  style="margin:10px 0 ;">   <span class="teal"> <b> Fare calulated : </b></span></div>'
+                            + '<table width="500" border="1" style="margin:10px 0 0 0 ;" ><tr border="1"><td class="rateTableCol"> Basic Fare = </td><td class="rateTableCol"> Rs '  + basicFare +'</td></tr>'
+                            + '<tr width="500" ><tr><td class="rateTableCol"> Deal Price = </td><td class="rateTableCol"> Rs '+totalCharges+' </td></tr>'
+                            + serviceTaxstr
+                            + '<tr><td class="rateTableTotalCol"> Total Fare =  </td><td class="rateTableTotalCol"> Rs '+totalFare+' </td></tr>'
+                            + '</table><div class="cabsaasPopupSubHeadr">   <span class="teal"> <b> Extra charges as follows: </b></span></div>'
+                            + '<div class="rateExtraCharge"><b> After '+Approx_Distance+' Kms :</b><br>'
+                              
+                                + '+ Rs '+KM_Rate+' Per Km <br>'
+                                + '+ Parking, Toll, State Tax as actual </div>'
+                                +  '</div>'
+
+                            + '</div> </div>';
+                }
+            
+                    html += '<div id="nni">' + html1
+                            + html2
+                            + html3
+                            + html4 + '</div>'
+
+                            ;
+                  //  html += '<span class=col-md-12> <input type="button" id="btnSave" value="Save PNG" onclick="popupToPdf()" /> </span>';
+                    $('#popup_box').html(html);
+                    $('#btmdv').css("height", 0 + 'px');
+                    //alert(((parseInt)($('.commonPopupContainerDiv#updv').css("height")))+","+(parseInt)($('#popup_box').css("height")))
+                    //var ht=((parseInt)($('.commonPopupContainerDiv#updv').css("height"))+((parseInt)($('.commonPopupContainerDiv#btmdv').css("height"))))-((parseInt)($('#popup_box').css("height")));
+                    var ht = (parseInt)($('#popup_box').css("height")) - (parseInt)($('.commonPopupContainerDiv#updv').css("height"));
+                    // alert((parseInt)($('#popup_box').css("height"))+","+(parseInt)($('.commonPopupContainerDiv#updv').css("height"))+","+(ht+280))
+                    $('#btmdv').css("height", (ht + 270) + 'px');
+                    $('#btmdv').css("opacity", 0);
+                    //  pdfcreator();
+
+                },
+                failure: (function () {
+                    alert("Failure!!");
+                })
+            });
+        } 
+    }
+        //By Nitin
+   
+    
+     function doSettlement(id) {
+      var vars={};
+        var myData = {id: id};
+        
+        $.ajax({
+            type: "POST",
+            url: "/booking/doSettlement", // call to Action method in COntroller
+            data: myData,
+            dataType: "JSON",
+            success: function (data) {
+                
+        //        var html;
+               $.each(data, function (k, v) {
+                    $.each(v, function (kk, vv) {
+                        vars[kk]=vv;
+                      // document.write(kk+" : "+vars[kk]+"<br>");
+                    });
+               });
+      
+                $('#popup_box').fadeIn("fast");
+                $(".commonPopupContainerDiv").css({"display": "block"});
+                $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                $('.commonPopupContainerDiv#updv').css("height", '100%');
+                var html = '<form action="https://khandesh.cabsaas.com/booking/addextras" method="post" > <div class="commonPopupClose" onclick="closeme();"></div>\n\
+                <div class="commonPopupHeader">Settlement Details</div>';
+
+               
+//1,2,3 roundtrip,oneway,multicity
+//4 fullday
+//5 halfday
+//0 transfer
+var html1="";
+
+            switch (vars['travelRoot']) {
+                case 0: //transfer
+                     html1= '\
+                        <div class="cmnPopLbl"> Extra Hours: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraHrs" name="extraHrs" value='+vars['extraHrs']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Parking Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="parkingCharges" name="parkingCharges" value='+vars['parkingCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Other Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="otherCharges" name="otherCharges" value='+vars['otherCharges']+' class="cmndpDnSmlInput calc"   > </div>';                         ;
+                    break;
+                    
+                case 2:
+                      html1= '\
+                        <div class="cmnPopLbl"> Extra Kms: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraKms" name="extraKms" value='+vars['extraKmRate']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Toll Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="tollCharges" name="tollCharges" value='+vars['tollCharges']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Parking Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="parkingCharges" name="parkingCharges" value='+vars['parkingCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> State Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="stateCharges" name="stateCharges" value='+vars['stateCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Other Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="otherCharges" name="otherCharges" value='+vars['otherCharges']+' class="cmndpDnSmlInput calc"   > </div>';
+                             
+                    
+                    break;
+                case 1:
+                case 3: //roundtrip,oneway,multicity
+                     html1= '\
+                        <div class="cmnPopLbl"> Extra Days: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraDay" name="extraDay" value='+vars['extraDay']+' class="cmndpDnSmlInput calc"     > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Extra Kms: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraKms" name="extraKms" value='+vars['extraKmRate']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Toll Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="tollCharges" name="tollCharges" value='+vars['tollCharges']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Parking Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="parkingCharges" name="parkingCharges" value='+vars['parkingCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> State Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="stateCharges" name="stateCharges" value='+vars['stateCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Other Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="otherCharges" name="otherCharges" value='+vars['otherCharges']+' class="cmndpDnSmlInput calc"   > </div>';
+                    break;
+                    
+                case 4: // fullday
+                case 5: //halfday
+                     html1= '\
+                        <div class="cmnPopLbl"> Extra Days: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraDay" name="extraDay" value='+vars['extraDay']+' class="cmndpDnSmlInput calc"  > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Extra Kms: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraKms" name="extraKms" value='+vars['extraKmRate']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Extra Hours: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="extraHrs" name="extraHrs" value='+vars['extraHrs']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Toll Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="tollCharges" name="tollCharges" value='+vars['tollCharges']+' class="cmndpDnSmlInput calc"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Parking Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="parkingCharges" name="parkingCharges" value='+vars['parkingCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> State Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="stateCharges" name="stateCharges" value='+vars['stateCharges']+' class="cmndpDnSmlInput calc"   > </div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Other Charges: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="otherCharges" name="otherCharges" value='+vars['otherCharges']+' class="cmndpDnSmlInput calc"   > </div>';
+                        
+                    break;
+            }
+                    
+                    if(vars['S_status']!=1)
+                    {
+                        var button='<div class="commonFormDtlsDiv" style="margin: 0; "> <input type="submit" id="settlebtn" name="settlebtn" value="Settle" class="btn btn-success pull-right"   > </div>'
+                    }
+                    else
+                    {
+                        var button="";
+                    }
+                    html +=html1;
+                    html +='\n\
+                        <div  class="commonFormDtlsDiv" style="margin: 0; " >\n\
+                        <div class="cmnPopLbl"> Exta Vendor Fare: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="totalFareVendor" name="totalFareVendor" readonly="readonly"   value="0" class="cmndpDnSmlInput"   ></div>\n\
+                        \n\
+                        <div class="cmnPopLbl"> Exta CCR Fare: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"><input type="text" name="totalFare" id="totalFare"  readonly="readonly"  value="0"  class="cmndpDnSmlInput"   > </div>\n\
+                        <div class="cmnPopLbl"> Pay Amount: </div>\n\
+                        <div class="cmnSmlDpDnInputNew"> <input type="text" id="payamount" name="payamount" readonly="readonly"   value="0" class="cmndpDnSmlInput"   ></div>\n\
+                        \n\
+                        </div>\n\
+                        '+button+'\n\
+                        <input type="hidden" name="bookingId" id="bookingId" value='+vars["bookingId"]+' ></div></div>\n\
+                         </form>';
+                    
+//
+
+               
+               
+    
+                $('#popup_box').html(html);
+                $('#btmdv').css("height", 0 + 'px');
+                //alert(((parseInt)($('.commonPopupContainerDiv#updv').css("height")))+","+(parseInt)($('#popup_box').css("height")))
+                //var ht=((parseInt)($('.commonPopupContainerDiv#updv').css("height"))+((parseInt)($('.commonPopupContainerDiv#btmdv').css("height"))))-((parseInt)($('#popup_box').css("height")));
+                var ht = (parseInt)($('#popup_box').css("height")) - (parseInt)($('.commonPopupContainerDiv#updv').css("height"));
+                // alert((parseInt)($('#popup_box').css("height"))+","+(parseInt)($('.commonPopupContainerDiv#updv').css("height"))+","+(ht+280))
+                $('#btmdv').css("height", (ht + 270) + 'px');
+                $('#btmdv').css("opacity", 0);
+                
+                    
+   
+    
+$(".calc").trigger("keyup");
+
+                //  pdfcreator();
+
+            },
+            failure: (function () {
+                alert("Failure!!");
+            })
+        });
+        
+         $("body").on("keyup", ".calc", function(event){
+        var totvalextraDay=0;
+        var totvalextraHr=0;
+        var totvalextraKm=0;
+        var totval=0;
+        
+        var V_totvalextraDay=0;
+        var V_totvalextraHr=0;
+        var V_totvalextraKm=0;
+        var V_totval=0;
+        $('.calc').each(
+               
+                function (index) {
+                    if($(this).attr('id')=='extraDay') {
+                        var day= parseInt($(this).val()) || 0;
+                        var aprx1=vars['approxDistance'];
+                        
+                        var mndst=parseInt(vars['minDistancePerDay']);
+                        var drivAll=day*parseInt(vars['driverAllowance']);
+                        
+                        var aprx2=mndst*parseInt(vars['noOfDays']);
+                        var aprx=(aprx1>aprx2)?aprx1:aprx2;
+                        totvalextraDay +=drivAll;
+                        
+                            if(vars['travelRoot']>=1 && vars['travelRoot']<=3){
+                                day = day+ parseInt(vars['noOfDays']);
+                                var totkm = day*mndst;
+                                var extrakmcharge="";
+                                    if(totkm>aprx){
+                                        var extrakm=totkm-aprx;
+                                        extrakmcharge=extrakm*vars['kmRate'];
+                                       // $('#extraKms').val(extrakm);
+                                        totvalextraDay +=extrakmcharge;
+                                    }
+                            }
+                            else if(vars['travelRoot']==4 || vars['travelRoot']==5 || vars['travelRoot']==0 ){
+                              
+                              if(vars['travelRoot']==4){
+                                    totvalextraDay +=vars['fullDay']*day;
+                                }
+                                else if(vars['travelRoot']==5){
+                                    totvalextraDay +=vars['halfDay']*day;
+                                }
+                                else if(vars['travelRoot']==0){
+                                    totvalextraDay +=vars['transfer']*day;
+                                }                                
+                            }
+
+                        }
+                        else if($(this).attr('id')=='extraKms'){
+                            var extrkm=parseInt($(this).val()) || 0;
+                            if(vars['travelRoot']==2){
+                                
+                                totvalextraKm += (extrkm/2)*vars['kmRate'];
+                                
+                                totvalextraKm += (extrkm/2)*vars['kmRateOw'];
+                                
+                            }else{
+                                
+                                    totvalextraKm += extrkm*vars['kmRate'];
+                            }
+                            
+                        }
+                        else if($(this).attr('id')=='extraHrs'){
+                            
+                             var extraHr=parseInt($(this).val()) || 0;
+                            totvalextraHr += extraHr*vars['extraHrRate'];
+                        }
+                        else{
+                            
+                            totval += parseInt($(this).val()) || 0;
+                        }
+                        
+                        
+                   //===========================  Venodr     
+                    if($(this).attr('id')=='extraDay') {
+                        
+                        var V_day= parseInt($(this).val()) || 0;
+                        var V_aprx1=vars['V_approxDistance'];
+                        
+                        var V_mndst=parseInt(vars['V_minDistancePerDay']);
+                        var V_drivAll=V_day*parseInt(vars['V_driverAllowance']);
+                        
+                        var V_aprx2=V_mndst*parseInt(vars['V_noOfDays']);
+                        var V_aprx=(V_aprx1>V_aprx2)?V_aprx1:V_aprx2;
+                        V_totvalextraDay +=V_drivAll;
+                        
+                            if(vars['travelRoot']>=1 && vars['travelRoot']<=3){
+                                V_day = V_day+ parseInt(vars['noOfDays']);
+                                var V_totkm = V_day*V_mndst;
+                                var V_extrakmcharge="";
+                                    if(V_totkm>V_aprx){
+                                        var V_extrakm=V_totkm-V_aprx;
+                                        V_extrakmcharge=V_extrakm*V_vars['V_kmRate'];
+                                       // $('#extraKms').val(extrakm);
+                                        V_totvalextraDay +=V_extrakmcharge;
+                                    }
+                            }
+                            else if(vars['travelRoot']==4 || vars['travelRoot']==5 || vars['travelRoot']==0 ){
+                              
+                              if(vars['travelRoot']==4){
+                                    V_totvalextraDay +=vars['V_fullDay']*V_day;
+                                }
+                                else if(vars['travelRoot']==5){
+                                    V_totvalextraDay +=vars['V_halfDay']*V_day;
+                                }
+                                else if(vars['travelRoot']==0){
+                                    V_totvalextraDay +=vars['V_transfer']*V_day;
+                                }                                
+                            }
+
+                        }
+                        else if($(this).attr('id')=='extraKms'){
+                            var V_extrkm=parseInt($(this).val()) || 0;
+                            if(vars['travelRoot']==2){
+                                
+                                V_totvalextraKm += (V_extrkm/2)*vars['V_kmRate'];
+                                
+                                V_totvalextraKm += (V_extrkm/2)*vars['V_kmRateOw'];
+                                
+                            }else{
+                                
+                                    V_totvalextraKm += V_extrkm*vars['V_kmRate'];
+                            }
+                        }
+                        else if($(this).attr('id')=='extraHrs'){
+                            
+                             var V_extraHr=parseInt($(this).val()) || 0;
+                             V_totvalextraHr += V_extraHr*vars['V_extraHrRate'];
+                        }
+                        else{
+                           
+                            V_totval += parseInt($(this).val()) || 0;
+                        }
+                       
+                    
+                    
+            });
+         
+             var V_totExtraHrandDay=V_totvalextraDay+V_totvalextraHr+V_totvalextraKm;
+              //  V_totExtraHrandDay +=(V_totExtraHrandDay * vars['serviceTax']) / 100;
+                V_totval +=Math.round(V_totExtraHrandDay);
+                
+              var totExtraHrandDay=totvalextraDay+totvalextraHr+totvalextraKm;
+                totExtraHrandDay +=(totExtraHrandDay * vars['serviceTax']) / 100;
+                totval +=Math.round(totExtraHrandDay);
+     
+               
+                
+     
+            $('#totalFare').val(totval);
+            $('#totalFareVendor').val(V_totval);
+    });
+         
+    }
+   
+    function isNumber(evt, element) {
+  
+
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (
+            //(charCode != 45 || $(element).val().indexOf('-') != -1) &&      // “-” CHECK MINUS, AND ONLY ONE.
+            // (charCode != 46 || $(element).val().indexOf('.') != -1) &&      // “.” CHECK DOT, AND ONLY ONE.
+                (charCode != 8) &&
+                (charCode < 48 || charCode > 57))
+        {
+            return false;
+        }
+        else {
+  
+            if($(element).val().length<3 || charCode == 8)
+                return true;
+            else
+                return false;
+        
+        }
+    }
+       
+    function pdfcreator() {
+
+//$.ajax({
+//            type: "POST",
+//            data: {image: imgData},
+//            url: "/booking/generatepdf",
+//            
+//            success: function (data) {
+//alert('done');
+//            },
+//            failure: (function () {
+//                alert("Failure!!");
+//            })
+//        });
+
+    }
+
+    function popupToPdf() {
+        $('.commonPopupClose').hide();
+        $('#btnSave').hide();
+
+//    var element = $('#popup_box');
+//            html2canvas(element, {
+//                onrendered: function(canvas) {
+//                    var doc = new jsPDF('p');
+//                    var dataUrl = canvas.toDataURL('image/png','1.0');
+//                    doc.addImage(dataUrl,'png', -1,10,'' ,'' ,'' , 'slow');
+//                    doc.save('MeterPhotosReport.pdf');   
+//                }
+//            });
+
+        try {
+            html2canvas($('#popup_box'), {width: $('#popup_box').width() + 10, height: $('#popup_box').height()}).then(
+                    function (canvas) {
+                        var ctx = canvas.getContext('2d');
+
+                        ctx.webkitImageSmoothingEnabled = false;
+                        ctx.mozImageSmoothingEnabled = false;
+                        ctx.imageSmoothingEnabled = false;
+
+                        var imgData = canvas.toDataURL("image/png", 1.0);
+                        var doc = new jsPDF();
+                        //doc.addImage(imgData, 'PNG', -1,10);
+                        doc.addImage(imgData, 'PNG', -1, 10);
+
+                        var blob = doc.output("blob");
+                        window.open(URL.createObjectURL(blob));
+
+                        // doc.save('travelerDetails.pdf'); 
+
+
+                        // window.open(canvas.toDataURL("image/png"));
+                    })
+//
+        } catch (e) {
+            alert("Error description: " + e.message);
+        }
+//                
+
+
+
+//                
+//                
+//        html2canvas($("#popup_box"), {
+//            onrendered: function(canvas) {    
+//                
+//               var ctx = canvas.getContext('2d');
+//
+//                ctx.webkitImageSmoothingEnabled = false;
+//                ctx.mozImageSmoothingEnabled = false;
+//                ctx.imageSmoothingEnabled = false;
+//
+//                var imgData = canvas.toDataURL("image/png", 1.0);
+//               // window.open(canvas.toDataURL("image/png"));
+//                var doc = new jsPDF('p', 'mm');
+//                doc.addImage(imgData, 'png', -1, 0);
+//                doc.save('sample-file.pdf');
+//            }
+//        });
+
+
+
+
+        $('.commonPopupClose').show();
+        $('#btnSave').show();
+
+
+    }
+    
+    
+    
+
+//------popup start chkexist, adddriver, addvehicle
+ var t = '';
+   function chkExist(obj) {
+    var selid = $(obj).parent(".combo-select").find("select").attr("id");
+    var continuefn= (selid=="driver" || selid=="vehicle")?true:false;
+        if(continuefn==false)
+            return false;
+    
+        var grandObj = $(obj).parent(".combo-select");
+
+        clearTimeout(t);
+        t = setTimeout(function () {
+            var match_li = $(grandObj).find('ul li[style*="display: list-item"]').length;
+            if (match_li == 0)
+            {
+                var txtval = $(obj).val();
+                var selectid = $(grandObj).find("select").attr("id");
+                var btnshow = true;
+                $("#" + selectid).find("option").each(function ()
+                {
+                    if (txtval == $(this).text())
+                    {
+                        //console.log(txtval + " " + $(this).text());
+                        btnshow = false;
+                    }
+                });
+                // selectid=$(grandObj).find("select").attr("id");
+                if (btnshow == true)
+                {
+//                    alert("not found");
+           var addli=$("#" + selectid).siblings("ul.combo-dropdown").children("li#addli")[0];
+            if(addli==undefined)
+            { $("#" + selectid).siblings("ul.combo-dropdown").append("<li class='option-item option-selected' id='addli' onclick='addnew"+selectid+"()' >add new "+selectid+"</li>"); }
+
+                }
+            }
+            else
+            {
+           var addli=$(grandObj).children("ul.combo-dropdown").children("li#addli")[0];
+           
+            if(addli!==undefined)
+            {
+              $(grandObj).children("ul.combo-dropdown").children("li#addli").remove();
+            }
+            
+//            console.log($("#" + selectid).siblings("ul.combo-dropdown"))
+               // $(grandObj).siblings(".jqaddbtn").empty();
+            }
+        }, 100);
+    }
+   function addnewdriver(){
+       closeme();
+        $(".dyn_hdn_refno").val($("#hdnrefno").val());
+                        $('#add_driver_popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                    var html = '<div class="commonPopupClose" onclick="closeme();"></div>';
+                        $('#add_driver_popup_box').append(html);
+   }
+   function addnewvehicle(){
+       closeme();
+       $(".dyn_hdn_refno").val($("#hdnrefno").val());
+                        $('#add_vehicle_popup_box').fadeIn("fast");
+                        $(".commonPopupContainerDiv").css({"display": "block"});
+                        $(".commonPopupContainerDiv").css({"opacity": "0.6"});
+                        $('.commonPopupContainerDiv#updv').css("height",'100%');
+                    var html = '<div class="commonPopupClose" onclick="closeme();"></div>';
+                        $('#add_vehicle_popup_box').append(html);
+   }
+//---//popup end
+</script>
+<style>
+
+    .spanVal{
+        width: 100px;
+        text-align: right;
+        float: left;
+    }
+    .spantot{
+        color: #0588bc;
+    }
+    
+    .actiontooltip
+    {
+        position:absolute;
+        width: 140px;
+        text-align: center;
+
+
+    }     
+    .commonPopupContentDiv span span{
+        border-bottom: 1px solid #ddd; 
+        
+    }
+    
+    .inneraction {
+        border-bottom: 2px solid #c1c1c1;
+        position:relative;
+        bottom: 5px;
+        left: 5px;
+        height: auto;
+        width: 110px;
+        background:#fff;
+        color: #FFFFFF;
+        display:none;
+        text-shadow: none;
+        z-index: 1000;
+        padding: 20px;
+        line-height: 19px;
+        text-align: justify;
+        opacity: 0.8;
+    }
+    .trvls{
+        border: 1px solid #cccccc;      
+        font-size: 13px;
+
+    }
+    .trvls th{
+        text-align: left;
+        font-weight: 500;
+        padding-left:  5px !important;
+        border: 1px solid #41b1b0;
+        background: #41b1b0;
+        color: #fff;
+
+    }
+    .trvls tr td{       
+        padding-left:  5px !important;
+
+    }
+   
+</style>
+
+
+<div style="height: auto; margin: 50px 0; ">
+    <div id="updv"  class="commonPopupContainerDiv" style="display:none;"></div>
+<div id="popup_box" class="commonPopupBox">
+</div>
+    <div id="add_vehicle_popup_box" class="commonPopupBox">
+    <!--start-->
+    <?php
+$form = $this->vehicleform;
+
+//$form->setAttribute('action', $this->url('vehicle', array('action' => 'vehicleuseradd')));
+$form->prepare();
+
+echo $this->form()->openTag($form);
+echo $this->formHidden($form->get('vehicleuserId')) ;
+?>
+<div class="commonFormDtlsDiv"></div>
+<?php   echo $this->formRow($form->get('dyn_hdn_refno'));?>
+    <div class="commonFormDtlsDiv">
+    <?php   echo $this->formSelect($form->get('vehicleId'));?>
+    </div>
+     <div class="commonFormDtlsDiv">
+     <?php echo $this->formElementErrors($form->get('vehicleId')); ?>
+    </div>
+
+   
+<div class="commonFormDtlsDiv">
+        <div class="commonInputLabelDiv">AC Working: </div> 
+<div class="inputNormalTxt">
+<?php
+echo html_entity_decode($this->formRow($form->get('isAc')));
+?>
+</div>
+    </div>
+    <div class="commonFormDtlsDiv">
+        <div class="commonInputLabelDiv">Music System Working: </div> 
+<div class="inputNormalTxt">
+<?php
+echo html_entity_decode($this->formRow($form->get('isMusic')));
+?>
+</div>
+    </div>
+    
+  <div class="commonFormDtlsDiv">
+        <div class="commonInputLabelDiv">Gps System Working: </div> 
+<div class="inputNormalTxt">
+<?php
+echo html_entity_decode($this->formRow($form->get('isGps')));
+?>
+</div>
+    </div>
+    
+    <div class="commonFormDtlsDiv">
+        <div class="commonInputLabelDiv">Is Carrier: </div> 
+<div class="inputNormalTxt">
+<?php
+echo html_entity_decode($this->formRow($form->get('isCarrier')));
+?>
+</div>
+    </div>
+       
+<!--  <div class="popupSmallInputOuterDiv">
+    <select name="a" class="popupSmallInput">    <option selected>Passing Code </option>
+    <option>Option 1</option>
+    <option>Option 2</option>
+    </select>
+  </div>
+     
+     <div class="popupSmallInputOuterDiv">
+     <input type="text" class="popupSmallInput" placeholder="Vehicle Code">
+     </div>
+     
+     <div class="popupSmallInputOuterDiv">
+     <input type="text" class="popupSmallInput" placeholder="Vehicle Number">
+     </div>-->
+
+<div class="commonFormDtlsDiv">
+<!--<div class="inputNormalTxt">-->
+<?php
+echo html_entity_decode($this->formSelect($form->get('vehiclecode')));
+?>
+    </div>
+<div class="commonFormDtlsDiv">
+<?php
+echo html_entity_decode($this->formInput($form->get('vehiclecode2')));
+?> </div>
+    <div class="commonFormDtlsDiv">
+<?php
+echo html_entity_decode($this->formInput($form->get('vehicleNo')));
+?> </div>
+<!--</div>-->
+    
+<div class="commonFormDtlsDiv">
+        <?=$this->formElementErrors($form->get('vehicleNo')) ?>
+</div>    
+    
+    <div class="commonFormDtlsDiv">
+            
+<?php
+echo html_entity_decode($this->formSelect($form->get('status')));
+?> </div>
+        <div class="commonFormDtlsDiv">
+       <?= $this->formElementErrors($form->get('status')) ?>
+
+    </div>
+    
+     <div class="btnCommonDiv">
+<?php echo $this->formInput($form->get('submit'));?>
+</div>
+<?php
+
+echo $this->form()->closeTag($form);
+?>
+
+    <!--end-->
+</div>
+<div id="add_driver_popup_box" class="commonPopupBox">
+    <?php
+                $form = $this->regiform;
+                $form->prepare();
+                echo $this->form()->openTag($form);
+ ?>
+    
+     <div class="commonFormDtlsDiv">
+<?php echo $this->formHidden($form->get('security'));?>
+<?php echo $this->formRow($form->get('dyn_hdn_refno'));?>
+        </div>
+        <div class="commonFormDtlsDiv">
+<?php echo $this->formRow($form->get('firstName'));?>
+        </div>
+    
+    <div class="commonFormDtlsDiv">
+<?php echo $this->formRow($form->get('lastName'));?>
+     </div>
+    
+     <div class="commonFormDtlsDiv">
+<?php echo $this->formRow($form->get('mobile'));?>
+        </div>
+    
+     <div class="commonFormDtlsDiv">
+<?php echo $this->formRow($form->get('email'));?>
+        </div>
+    
+<div class="btnCommonDiv">
+<?php echo $this->formInput($form->get('save'));?>
+</div>
+    
+<?php
+echo $this->form()->closeTag($form);
+?>
+</div>
+    
+    <!--popup for select driver and vehicle-->
+<div id="my_popup_box" class="commonPopupBox">
+   <?php
+   $form = $this->form;
+   $form->prepare();
+
+echo $this->form()->openTag($form);
+?>
+    <div class="commonFormDtlsDiv">
+<?php            
+echo $this->formHidden($form->get('refno'));
+?>
+        
+<?php        
+echo $this->formSelect($form->get('driver'));
+?> </div>
+        <div class="commonFormDtlsDiv"> 
+        <?= $this->formElementErrors($form->get('driver')); ?>
+    </div>
+    <div class="commonFormDtlsDiv"> 
+        
+<?php        
+echo $this->formSelect($form->get('vehicle'));
+?></div>
+         <div class="commonFormDtlsDiv"> 
+<?= $this->formElementErrors($form->get('vehicle')); ?>
+    </div>
+
+<?php
+$form->get('submit')->setAttribute("value","submit");
+echo $this->formSubmit($form->get('submit'));
+
+echo $this->form()->closeTag($form);
+   ?>
+</div>
+    <div id="btmdv" class="commonPopupContainerDiv" style="display:none;  position: relative; height: 0px;">
+</div>
+
+</div>
+<style>
+    .commonPopupContainerDiv {
+                min-height: 100px !important;
+                height: 100%;
+    }
+    #popup_box {
+        display:none; 
+    }
+    #my_popup_box {
+        display:none; 
+    }
+    #add_driver_popup_box {
+        display:none; 
+    }
+    #add_vehicle_popup_box {
+        display:none; 
+    }
+    .userEditOptionsPopup{
+        display:none; 
+    }
+</style>
+<script>
+$(function() {
+
+            $ ('#vehiclecode2').keydown ( function (e) {
+                //list of functional/control keys that you want to allow always
+                var keys = [8, 9, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 45, 46, 144, 145];
+
+                if( $.inArray(e.keyCode, keys) == -1) {
+                    if (checkMaxLength ($(this).val(), 3)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            });
+
+            $ ('#vehicleNo').keydown ( function (e) {
+                //list of functional/control keys that you want to allow always
+                var keys = [8, 9, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 45, 46, 144, 145];
+
+                if( $.inArray(e.keyCode, keys) == -1) {
+                    if (checkMaxLength ($(this).val(), 4)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            });
+
+            function checkMaxLength (text, max) {
+                return (text.length >= max);
+            }
+   
+$("#vehicleuser").validate({
+  rules: {
+    vehiclecode2:  {
+      required: true,
+      minlength: 1,
+      maxlength: 3,
+      lettersonly:true
+    },
+    vehicleNo:  {
+      required: true,
+      minlength: 1,
+      maxlength: 4,
+      digits:true
+    },
+//    messages:{
+//        vehicleNo:{
+//            required:"code is required",
+//        }
+//    }
+  }
+});
+});
+</script>
+
+<script>
+		$(function(){
+
+			$('select')
+			.comboSelect()
+
+      /**
+       * on Change
+       */
+
+      $('.js-select').change(function(e, v){
+          $('.idx').text(e.target.selectedIndex)
+          $('.val').text(e.target.value)
+      })
+
+      /**
+       * Open select
+       */
+
+      $('.js-select-open').click(function(e){
+        $('.js-select').focus()
+        e.preventDefault();
+      })
+
+      /**
+       * Open select
+       */
+
+      $('.js-select-close').click(function(e){
+        $('.js-select').trigger('comboselect:close')
+        e.preventDefault();
+      })
+
+		})
+	</script>
+        
+        <script type="text/javascript">
+
+ 
+</script>
+
+
+
+
